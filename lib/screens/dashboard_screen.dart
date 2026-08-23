@@ -5,10 +5,17 @@ import '../core/theme.dart';
 import '../services/auth_service.dart';
 import '../widgets/clay.dart';
 import '../widgets/decor.dart';
+import 'dapur_screen.dart';
 import 'kasir_screen.dart';
+import 'laporan_screen.dart';
 import 'login_screen.dart';
+import 'meja_screen.dart';
+import 'menu_screen.dart';
 import 'module_placeholder.dart';
 import 'permissions_screen.dart';
+import 'pesanan_screen.dart';
+import 'shift_screen.dart';
+import 'stok_screen.dart';
 
 /// Modul disamakan dengan web stakko-pos (F&B), tata letak grid clay untuk mobile.
 class _Module {
@@ -188,9 +195,19 @@ class _ModuleTile extends StatelessWidget {
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => switch (module.title) {
-            // Modul yang sudah tersambung ke API.
+            // Semua modul F&B sudah tersambung ke API.
             'Kasir' => const KasirScreen(),
+            'Dapur' => const DapurScreen(),
+            'Pesanan' => const PesananScreen(),
+            'Meja' => const MejaScreen(),
+            'Menu' => const MenuScreen(),
+            'Resep' => const MenuScreen(),
+            'Stok' => const StokScreen(),
+            'Laporan' => const LaporanScreen(),
+            'HPP' => const LaporanScreen(focusHpp: true),
+            'Shift' => const ShiftScreen(),
             'Izin & Setelan' => const PermissionsScreen(),
+            // Sisanya (mis. Langganan) belum punya layar sendiri.
             _ => ModulePlaceholder(
                 title: module.title,
                 endpointHint: module.endpointHint,

@@ -44,6 +44,9 @@ class ApiClient {
     return d;
   }
 
+  /// Kode status HTTP dari sebuah error (null bila gagal sebelum ada respons).
+  static int? statusCode(Object e) => e is DioException ? e.response?.statusCode : null;
+
   /// Ambil pesan error yang manusiawi dari respons API.
   static String errorMessage(Object e) {
     if (e is DioException) {
