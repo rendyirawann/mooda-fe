@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 420" fill="none">
+  <defs>
+    <linearGradient id="bh1" x1="60" y1="40" x2="380" y2="380" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6E9BFF" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#3070F0" stop-opacity=".22"/>
+    </linearGradient>
+    <linearGradient id="bh2" x1="300" y1="20" x2="120" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B9CCFF" stop-opacity=".65"/>
+      <stop offset="1" stop-color="#8FB0FF" stop-opacity=".18"/>
+    </linearGradient>
+  </defs>
+  <!-- gumpalan besar (kiri-atas) -->
+  <path fill="url(#bh1)" d="M232 20c58 6 104 44 128 96 25 53 20 118-14 163-33 45-93 70-149 62-56-8-108-49-133-103C39 184 44 118 82 76c37-42 92-62 150-56Z"/>
+  <!-- gumpalan kedua, agak bergeser -->
+  <path fill="url(#bh2)" d="M150 60c52-14 112 4 148 45 36 41 47 105 26 155-20 50-72 86-126 88-53 2-108-30-133-79-25-48-19-113 15-152 34-40 18-43 70-57Z" opacity=".8"/>
+</svg>

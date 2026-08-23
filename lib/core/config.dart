@@ -6,10 +6,12 @@
 class AppConfig {
   AppConfig._();
 
-  /// Endpoint API mooda-be. Semua request FE mengarah ke sini.
+  /// Endpoint API mooda-be. Default = produksi (api.mooda.id).
+  /// Untuk debug lokal, override saat run:
+  ///   --dart-define=API_BASE=http://127.0.0.1:8080/api/v1
   static const String apiBase = String.fromEnvironment(
     'API_BASE',
-    defaultValue: 'http://127.0.0.1:8080/api/v1',
+    defaultValue: 'https://api.mooda.id/api/v1',
   );
 
   /// Vertical aktif build ini (fnb / laundry). Default dine.

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../core/api_client.dart';
 import '../core/config.dart';
 import '../core/theme.dart';
 import '../services/auth_service.dart';
+import '../widgets/clay.dart';
+import '../widgets/decor.dart';
 import 'dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -50,121 +53,140 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
+      body: ClayBackdrop(
+        child: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 28),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
+              constraints: const BoxConstraints(maxWidth: 440),
               child: Form(
                 key: _formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Container(
-                      width: 72,
-                      height: 72,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [MoodaTheme.primary, MoodaTheme.accent],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'M',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 36,
-                          fontWeight: FontWeight.w800,
+                    // Logo Mooda di atas bantalan clay.
+                    Center(
+                      child: ClayBox(
+                        padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 22),
+                        radius: MoodaTheme.radiusLg,
+                        child: Image.asset(
+                          'assets/images/mooda-logo.png',
+                          height: 92,
+                          fit: BoxFit.contain,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 18),
+                    // Ilustrasi kasir (SVG) — memberi konteks & tak terasa polos.
+                    Center(
+                      child: SvgPicture.asset(
+                        'assets/svg/illus-kasir.svg',
+                        height: 132,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
                     const Text(
-                      'Masuk ke ${AppConfig.appName}',
+                      'Masuk ke akunmu',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 22,
                         fontWeight: FontWeight.w800,
                         color: MoodaTheme.ink,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     const Text(
                       AppConfig.tagline,
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: MoodaTheme.muted),
+                      style: TextStyle(color: MoodaTheme.muted, fontSize: 13),
                     ),
-                    const SizedBox(height: 28),
-                    TextFormField(
-                      controller: _email,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        prefixIcon: Icon(Icons.mail_outline),
-                      ),
-                      validator: (v) =>
-                          (v == null || !v.contains('@')) ? 'Email tidak valid' : null,
-                    ),
-                    const SizedBox(height: 14),
-                    TextFormField(
-                      controller: _pass,
-                      obscureText: _obscure,
-                      decoration: InputDecoration(
-                        labelText: 'Kata sandi',
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        suffixIcon: IconButton(
-                          icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
-                          onPressed: () => setState(() => _obscure = !_obscure),
-                        ),
-                      ),
-                      validator: (v) =>
-                          (v == null || v.isEmpty) ? 'Kata sandi wajib diisi' : null,
-                    ),
-                    if (_error != null) ...[
-                      const SizedBox(height: 14),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: MoodaTheme.danger.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.error_outline,
-                                color: MoodaTheme.danger, size: 20),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                _error!,
-                                style: const TextStyle(color: MoodaTheme.danger),
+                    const SizedBox(height: 26),
+
+                    // Kartu form clay.
+                    ClayBox(
+                      padding: const EdgeInsets.all(20),
+                      radius: MoodaTheme.radiusLg,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          TextFormField(
+                            controller: _email,
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                            decoration: const InputDecoration(
+                              labelText: 'Email',
+                              prefixIcon: Icon(Icons.mail_outline_rounded),
+                            ),
+                            validator: (v) => (v == null || !v.contains('@'))
+                                ? 'Email tidak valid'
+                                : null,
+                          ),
+                          const SizedBox(height: 14),
+                          TextFormField(
+                            controller: _pass,
+                            obscureText: _obscure,
+                            textInputAction: TextInputAction.done,
+                            onFieldSubmitted: (_) => _submit(),
+                            decoration: InputDecoration(
+                              labelText: 'Kata sandi',
+                              prefixIcon: const Icon(Icons.lock_outline_rounded),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscure
+                                      ? Icons.visibility_off_rounded
+                                      : Icons.visibility_rounded,
+                                  color: MoodaTheme.muted,
+                                ),
+                                onPressed: () => setState(() => _obscure = !_obscure),
+                              ),
+                            ),
+                            validator: (v) => (v == null || v.isEmpty)
+                                ? 'Kata sandi wajib diisi'
+                                : null,
+                          ),
+                          if (_error != null) ...[
+                            const SizedBox(height: 16),
+                            ClayBox(
+                              padding: const EdgeInsets.all(14),
+                              radius: MoodaTheme.radiusSm,
+                              color: const Color(0xFFFDECEC),
+                              blur: 10,
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.error_outline_rounded,
+                                      color: MoodaTheme.danger, size: 20),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      _error!,
+                                      style: const TextStyle(
+                                        color: MoodaTheme.danger,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
-                        ),
+                          const SizedBox(height: 22),
+                          ClayButton(
+                            label: 'Masuk',
+                            icon: Icons.arrow_forward_rounded,
+                            loading: _loading,
+                            onPressed: _loading ? null : _submit,
+                          ),
+                        ],
                       ),
-                    ],
-                    const SizedBox(height: 22),
-                    FilledButton(
-                      onPressed: _loading ? null : _submit,
-                      child: _loading
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.4,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text('Masuk'),
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'API: ${AppConfig.apiBase}',
+                    const SizedBox(height: 18),
+                    const Text(
+                      AppConfig.apiBase,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: MoodaTheme.muted, fontSize: 11),
+                      style: TextStyle(color: MoodaTheme.muted, fontSize: 10.5),
                     ),
                   ],
                 ),
@@ -172,6 +194,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

@@ -1,5 +1,8 @@
 # Flutter / Dart
 .dart_tool/
+android/.gradle/
+android/.kotlin/
+android/local.properties
 .packages
 .pub-cache/
 .pub/

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 200" fill="none">
+  <defs>
+    <linearGradient id="e-box" x1="60" y1="80" x2="180" y2="180" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EDF1FC"/><stop offset="1" stop-color="#D7E0F5"/>
+    </linearGradient>
+    <linearGradient id="e-lid" x1="60" y1="60" x2="180" y2="110" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6E9BFF"/><stop offset="1" stop-color="#3070F0"/>
+    </linearGradient>
+  </defs>
+
+  <ellipse cx="120" cy="176" rx="76" ry="13" fill="#C3CCE0" fill-opacity=".6"/>
+
+  <!-- kardus kosong -->
+  <path d="M62 96h116l-10 66a10 10 0 0 1-10 8H82a10 10 0 0 1-10-8L62 96Z" fill="url(#e-box)"/>
+  <rect x="54" y="76" width="132" height="26" rx="9" fill="url(#e-lid)"/>
+  <rect x="108" y="82" width="24" height="14" rx="6" fill="#FFFFFF" fill-opacity=".5"/>
+
+  <!-- garis "kosong" di dalam -->
+  <rect x="92" y="118" width="56" height="7" rx="3.5" fill="#102030" fill-opacity=".1"/>
+  <rect x="102" y="132" width="36" height="7" rx="3.5" fill="#102030" fill-opacity=".08"/>
+
+  <!-- kilau kecil -->
+  <circle cx="188" cy="60" r="7" fill="#3070F0" fill-opacity=".3"/>
+  <circle cx="56" cy="52" r="4.5" fill="#F59E0B" fill-opacity=".55"/>
+  <path d="M204 104l4 9 9 4-9 4-4 9-4-9-9-4 9-4 4-9Z" fill="#6E9BFF" fill-opacity=".5"/>
+</svg>
