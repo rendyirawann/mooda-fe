@@ -5,6 +5,7 @@ import '../core/theme.dart';
 import '../services/auth_service.dart';
 import '../widgets/clay.dart';
 import '../widgets/decor.dart';
+import 'kasir_screen.dart';
 import 'login_screen.dart';
 import 'module_placeholder.dart';
 import 'permissions_screen.dart';
@@ -186,14 +187,17 @@ class _ModuleTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => module.title == 'Izin & Setelan'
-              ? const PermissionsScreen()
-              : ModulePlaceholder(
-                  title: module.title,
-                  endpointHint: module.endpointHint,
-                  color: module.color,
-                  icon: module.icon,
-                ),
+          builder: (_) => switch (module.title) {
+            // Modul yang sudah tersambung ke API.
+            'Kasir' => const KasirScreen(),
+            'Izin & Setelan' => const PermissionsScreen(),
+            _ => ModulePlaceholder(
+                title: module.title,
+                endpointHint: module.endpointHint,
+                color: module.color,
+                icon: module.icon,
+              ),
+          },
         ),
       ),
       child: Column(
