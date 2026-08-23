@@ -7,6 +7,7 @@ import '../widgets/clay.dart';
 import '../widgets/decor.dart';
 import 'login_screen.dart';
 import 'module_placeholder.dart';
+import 'permissions_screen.dart';
 
 /// Modul disamakan dengan web stakko-pos (F&B), tata letak grid clay untuk mobile.
 class _Module {
@@ -29,7 +30,7 @@ const _modules = <_Module>[
   _Module('HPP', Icons.calculate_rounded, Color(0xFFA855F7), 'GET /fnb/reports/hpp'),
   _Module('Shift', Icons.schedule_rounded, Color(0xFF059669), 'GET /shifts/current'),
   _Module('Langganan', Icons.workspace_premium_rounded, Color(0xFFEC4899), 'GET /account/plan'),
-  _Module('Pengaturan', Icons.settings_rounded, Color(0xFF64748B), 'GET /config'),
+  _Module('Izin & Setelan', Icons.settings_rounded, Color(0xFF64748B), 'GET /config'),
 ];
 
 class DashboardScreen extends StatefulWidget {
@@ -185,12 +186,14 @@ class _ModuleTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => ModulePlaceholder(
-            title: module.title,
-            endpointHint: module.endpointHint,
-            color: module.color,
-            icon: module.icon,
-          ),
+          builder: (_) => module.title == 'Izin & Setelan'
+              ? const PermissionsScreen()
+              : ModulePlaceholder(
+                  title: module.title,
+                  endpointHint: module.endpointHint,
+                  color: module.color,
+                  icon: module.icon,
+                ),
         ),
       ),
       child: Column(

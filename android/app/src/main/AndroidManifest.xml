@@ -1,6 +1,36 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- ================= JARINGAN =================
+         WAJIB untuk build release: aplikasi ini murni memanggil API (api.mooda.id).
+         Template Flutter hanya menaruh izin ini di manifest debug/profile, sehingga
+         tanpa baris ini APK release gagal terhubung ke server. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
+    <!-- ================= LOKASI =================
+         Untuk penandaan lokasi outlet / absensi kasir. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+
+    <!-- ================= MEDIA & KAMERA =================
+         Foto menu/produk, lampiran, dan pemindaian. Android 13+ memakai izin
+         READ_MEDIA_*, sedangkan Android 12 ke bawah memakai READ_EXTERNAL_STORAGE. -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"/>
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28"/>
+
+    <!-- Kamera bukan syarat wajib: perangkat tanpa kamera tetap boleh memasang. -->
+    <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    <uses-feature android:name="android.hardware.location" android:required="false"/>
+
     <application
-        android:label="mooda_fe"
+        android:label="Mooda"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
