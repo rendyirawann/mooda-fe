@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../core/permissions.dart';
 import '../core/theme.dart';
@@ -66,21 +67,21 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
         AppPermission.lokasi,
         'Lokasi',
         'Penandaan lokasi outlet & absensi kasir',
-        Icons.location_on_rounded,
+        LucideIcons.mapPin,
         Color(0xFF10B981),
       ),
       (
         AppPermission.kamera,
         'Kamera',
         'Ambil foto menu/produk & pemindaian',
-        Icons.photo_camera_rounded,
+        LucideIcons.camera,
         Color(0xFF3070F0),
       ),
       (
         AppPermission.media,
         'Media & Galeri',
         'Pilih gambar dari galeri perangkat',
-        Icons.perm_media_rounded,
+        LucideIcons.images,
         Color(0xFF8B5CF6),
       ),
     ];
@@ -97,7 +98,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                     onTap: () => Navigator.of(context).maybePop(),
                     radius: 100,
                     padding: const EdgeInsets.all(13),
-                    child: const Icon(Icons.arrow_back_rounded,
+                    child: const Icon(LucideIcons.arrowLeft,
                         size: 20, color: MoodaTheme.ink),
                   ),
                   const SizedBox(width: 14),
@@ -145,7 +146,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                       ),
                       const SizedBox(width: 10),
                       if (_granted[perm] == true)
-                        const Icon(Icons.check_circle_rounded,
+                        const Icon(LucideIcons.circleCheck,
                             color: MoodaTheme.success, size: 28)
                       else
                         ClayTappable(

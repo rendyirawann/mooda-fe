@@ -99,6 +99,18 @@ class FnbService {
     return Map<String, dynamic>.from(r.data['data'] as Map);
   }
 
+  // ---------------- Beranda / Akun ----------------
+  /// Ringkasan beranda: hari ini vs kemarin, tren 7 hari, transaksi terbaru.
+  static Future<Map<String, dynamic>> dashboard() async {
+    final r = await ApiClient.dio.get('/fnb/reports/dashboard');
+    return Map<String, dynamic>.from(r.data['data'] as Map);
+  }
+
+  static Future<Map<String, dynamic>> tenant() async {
+    final r = await ApiClient.dio.get('/account/tenant');
+    return Map<String, dynamic>.from(r.data['data'] as Map);
+  }
+
   // ---------------- Laporan ----------------
   static Future<Map<String, dynamic>> sales({String? from, String? to}) async {
     final r = await ApiClient.dio.get('/fnb/reports/sales', queryParameters: {

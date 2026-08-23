@@ -15,13 +15,17 @@ void main() {
   });
 
   testWidgets('menampilkan layar login saat belum ada token', (tester) async {
-    await tester.pumpWidget(const MoodaApp());
+    // Layar login cukup tinggi; pakai kanvas besar agar tidak overflow saat uji.
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.reset);
 
-    // Selesaikan pembacaan token (async) lalu render ulang.
+    await tester.pumpWidget(const MoodaApp());
     await tester.pumpAndSettle();
 
     expect(find.byType(LoginScreen), findsOneWidget);
-    expect(find.text('Masuk ke akunmu'), findsOneWidget);
-    expect(find.widgetWithText(TextFormField, 'Email'), findsOneWidget);
+    expect(find.text('Aplikasi Kasir Modern'), findsOneWidget);
+    expect(find.widgetWithText(TextFormField, 'Email / Username'), findsOneWidget);
+    expect(find.text('Masuk'), findsWidgets);
   });
 }

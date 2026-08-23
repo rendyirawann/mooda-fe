@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../core/api_client.dart';
 import '../core/format.dart';
@@ -84,7 +85,7 @@ class _MenuScreenState extends State<MenuScreen> {
                   child: Row(
                     children: [
                       const ClayIconBadge(
-                        icon: Icons.menu_book_rounded,
+                        icon: LucideIcons.bookOpen,
                         color: Color(0xFF8B5CF6),
                         size: 44,
                       ),
@@ -111,7 +112,7 @@ class _MenuScreenState extends State<MenuScreen> {
                           ],
                         ),
                       ),
-                      const Icon(Icons.chevron_right_rounded, color: MoodaTheme.muted),
+                      const Icon(LucideIcons.chevronRight, color: MoodaTheme.muted),
                     ],
                   ),
                 );

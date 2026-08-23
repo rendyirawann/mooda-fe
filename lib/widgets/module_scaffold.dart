@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../core/theme.dart';
@@ -15,6 +16,7 @@ class ModuleScaffold extends StatelessWidget {
     this.onRefresh,
     this.actions = const [],
     this.floating,
+    this.showBack = true,
   });
 
   final String title;
@@ -22,6 +24,9 @@ class ModuleScaffold extends StatelessWidget {
   final Future<void> Function()? onRefresh;
   final List<Widget> actions;
   final Widget? floating;
+
+  /// false bila layar dipakai sebagai tab di ShellScreen (tak perlu tombol kembali).
+  final bool showBack;
 
   @override
   Widget build(BuildContext context) {
@@ -35,14 +40,16 @@ class ModuleScaffold extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(18, 14, 18, 10),
                 child: Row(
                   children: [
-                    ClayTappable(
-                      onTap: () => Navigator.of(context).maybePop(),
-                      radius: 100,
-                      padding: const EdgeInsets.all(13),
-                      child: const Icon(Icons.arrow_back_rounded,
-                          size: 20, color: MoodaTheme.ink),
-                    ),
-                    const SizedBox(width: 14),
+                    if (showBack) ...[
+                      ClayTappable(
+                        onTap: () => Navigator.of(context).maybePop(),
+                        radius: 100,
+                        padding: const EdgeInsets.all(12),
+                        child: const Icon(LucideIcons.arrowLeft,
+                            size: 19, color: MoodaTheme.ink),
+                      ),
+                      const SizedBox(width: 14),
+                    ],
                     Expanded(
                       child: Text(
                         title,
@@ -62,7 +69,7 @@ class ModuleScaffold extends StatelessWidget {
                         onTap: onRefresh,
                         radius: 100,
                         padding: const EdgeInsets.all(13),
-                        child: const Icon(Icons.refresh_rounded,
+                        child: const Icon(LucideIcons.refreshCw,
                             size: 20, color: MoodaTheme.ink),
                       ),
                     ],
@@ -122,7 +129,7 @@ class ModuleState extends StatelessWidget {
                 width: 180,
                 child: ClayButton(
                   label: 'Coba lagi',
-                  icon: Icons.refresh_rounded,
+                  icon: LucideIcons.refreshCw,
                   onPressed: onRetry,
                 ),
               ),

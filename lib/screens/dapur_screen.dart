@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../core/api_client.dart';
 import '../core/theme.dart';
@@ -140,7 +141,7 @@ class _DapurScreenState extends State<DapurScreen> {
           const SizedBox(height: 12),
           ClayButton(
             label: 'Semua siap disajikan',
-            icon: Icons.room_service_rounded,
+            icon: LucideIcons.bellRing,
             onPressed: () => _run(() => FnbService.orderStatus(orderId, 'served')),
           ),
         ],
@@ -196,7 +197,7 @@ class _DapurScreenState extends State<DapurScreen> {
               ),
             )
           else
-            const Icon(Icons.check_circle_rounded, color: MoodaTheme.success, size: 22),
+            const Icon(LucideIcons.circleCheck, color: MoodaTheme.success, size: 22),
         ],
       ),
     );

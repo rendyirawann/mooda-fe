@@ -9,7 +9,10 @@ import '../widgets/module_scaffold.dart';
 
 /// Riwayat pesanan + detail nota.
 class PesananScreen extends StatefulWidget {
-  const PesananScreen({super.key});
+  const PesananScreen({super.key, this.embedded = false});
+
+  /// true bila dipakai sebagai tab di ShellScreen.
+  final bool embedded;
 
   @override
   State<PesananScreen> createState() => _PesananScreenState();
@@ -63,6 +66,7 @@ class _PesananScreenState extends State<PesananScreen> {
   Widget build(BuildContext context) {
     return ModuleScaffold(
       title: 'Pesanan',
+      showBack: !widget.embedded,
       onRefresh: _load,
       child: Column(
         children: [

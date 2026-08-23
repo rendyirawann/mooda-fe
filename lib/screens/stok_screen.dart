@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../core/api_client.dart';
 import '../core/format.dart';
@@ -148,7 +149,7 @@ class _StokScreenState extends State<StokScreen> {
           gradient: _onlyLow ? MoodaTheme.clayPrimary : null,
           padding: const EdgeInsets.all(13),
           child: Icon(
-            Icons.warning_amber_rounded,
+            LucideIcons.triangleAlert,
             size: 20,
             color: _onlyLow ? Colors.white : MoodaTheme.ink,
           ),
@@ -177,7 +178,7 @@ class _StokScreenState extends State<StokScreen> {
                   child: Row(
                     children: [
                       ClayIconBadge(
-                        icon: low ? Icons.warning_amber_rounded : Icons.inventory_2_rounded,
+                        icon: low ? LucideIcons.triangleAlert : LucideIcons.boxes,
                         color: low ? const Color(0xFFF97316) : const Color(0xFF06B6D4),
                         size: 44,
                       ),
@@ -209,7 +210,7 @@ class _StokScreenState extends State<StokScreen> {
                         onTap: () => _movementDialog(it, 'in'),
                         radius: 100,
                         padding: const EdgeInsets.all(9),
-                        child: const Icon(Icons.add_rounded,
+                        child: const Icon(LucideIcons.plus,
                             size: 17, color: MoodaTheme.success),
                       ),
                       const SizedBox(width: 6),
@@ -217,7 +218,7 @@ class _StokScreenState extends State<StokScreen> {
                         onTap: () => _movementDialog(it, 'out'),
                         radius: 100,
                         padding: const EdgeInsets.all(9),
-                        child: const Icon(Icons.remove_rounded,
+                        child: const Icon(LucideIcons.minus,
                             size: 17, color: MoodaTheme.danger),
                       ),
                     ],
@@ -300,8 +301,8 @@ class _StokScreenState extends State<StokScreen> {
                       children: [
                         Icon(
                           m['type'] == 'in'
-                              ? Icons.arrow_downward_rounded
-                              : Icons.arrow_upward_rounded,
+                              ? LucideIcons.arrowDown
+                              : LucideIcons.arrowUp,
                           size: 14,
                           color: m['type'] == 'in' ? MoodaTheme.success : MoodaTheme.danger,
                         ),

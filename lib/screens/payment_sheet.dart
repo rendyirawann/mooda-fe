@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../core/api_client.dart';
 import '../core/format.dart';
@@ -145,7 +146,7 @@ class _PaymentSheetState extends State<PaymentSheet> {
         padding: const EdgeInsets.all(13),
         child: Row(
           children: [
-            const Icon(Icons.error_outline_rounded, color: MoodaTheme.danger, size: 20),
+            const Icon(LucideIcons.circleAlert, color: MoodaTheme.danger, size: 20),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
@@ -192,7 +193,7 @@ class _PaymentSheetState extends State<PaymentSheet> {
         const SizedBox(height: 18),
         ClayButton(
           label: 'Buat pesanan',
-          icon: Icons.receipt_long_rounded,
+          icon: LucideIcons.receiptText,
           loading: _busy,
           onPressed: _busy ? null : _createOrder,
         ),
@@ -223,7 +224,7 @@ class _PaymentSheetState extends State<PaymentSheet> {
               ],
             ),
           ),
-          _qtyBtn(Icons.remove_rounded, () {
+          _qtyBtn(LucideIcons.minus, () {
             setState(() {
               if (line.qty > 1) {
                 line.qty--;
@@ -240,7 +241,7 @@ class _PaymentSheetState extends State<PaymentSheet> {
               style: const TextStyle(fontWeight: FontWeight.w800, color: MoodaTheme.ink),
             ),
           ),
-          _qtyBtn(Icons.add_rounded, () => setState(() => line.qty++)),
+          _qtyBtn(LucideIcons.plus, () => setState(() => line.qty++)),
         ],
       ),
     );
@@ -270,9 +271,9 @@ class _PaymentSheetState extends State<PaymentSheet> {
         const SizedBox(height: 18),
         Row(
           children: [
-            Expanded(child: _methodBtn('cash', 'Tunai', Icons.payments_rounded)),
+            Expanded(child: _methodBtn('cash', 'Tunai', LucideIcons.banknote)),
             const SizedBox(width: 10),
-            Expanded(child: _methodBtn('qris', 'QRIS', Icons.qr_code_rounded)),
+            Expanded(child: _methodBtn('qris', 'QRIS', LucideIcons.qrCode)),
           ],
         ),
         if (_method == 'cash') ...[
@@ -283,7 +284,7 @@ class _PaymentSheetState extends State<PaymentSheet> {
             onChanged: (_) => setState(() {}),
             decoration: const InputDecoration(
               labelText: 'Uang diterima',
-              prefixIcon: Icon(Icons.attach_money_rounded),
+              prefixIcon: Icon(LucideIcons.banknote),
             ),
           ),
           const SizedBox(height: 10),
@@ -317,7 +318,7 @@ class _PaymentSheetState extends State<PaymentSheet> {
         const SizedBox(height: 18),
         ClayButton(
           label: 'Bayar sekarang',
-          icon: Icons.check_rounded,
+          icon: LucideIcons.check,
           loading: _busy,
           onPressed: (_busy || !enough) ? null : _pay,
         ),
@@ -372,7 +373,7 @@ class _PaymentSheetState extends State<PaymentSheet> {
               color: Color(0xFFE7F8F1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.check_rounded, color: MoodaTheme.success, size: 36),
+            child: const Icon(LucideIcons.check, color: MoodaTheme.success, size: 36),
           ),
         ),
         const SizedBox(height: 14),
@@ -421,7 +422,7 @@ class _PaymentSheetState extends State<PaymentSheet> {
         const SizedBox(height: 20),
         ClayButton(
           label: 'Selesai',
-          icon: Icons.done_all_rounded,
+          icon: LucideIcons.checkCheck,
           onPressed: () => Navigator.of(context).pop(true),
         ),
       ],

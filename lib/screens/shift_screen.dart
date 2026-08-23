@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../core/api_client.dart';
 import '../core/format.dart';
@@ -110,7 +111,7 @@ class _ShiftScreenState extends State<ShiftScreen> {
           child: Column(
             children: [
               const ClayIconBadge(
-                icon: Icons.schedule_rounded,
+                icon: LucideIcons.clock,
                 color: MoodaTheme.primary,
                 size: 60,
               ),
@@ -129,7 +130,7 @@ class _ShiftScreenState extends State<ShiftScreen> {
               const SizedBox(height: 20),
               ClayButton(
                 label: 'Buka shift',
-                icon: Icons.lock_open_rounded,
+                icon: LucideIcons.lockOpen,
                 loading: _busy,
                 onPressed: _busy
                     ? null
@@ -195,7 +196,7 @@ class _ShiftScreenState extends State<ShiftScreen> {
       const SizedBox(height: 16),
       ClayButton(
         label: 'Tutup shift',
-        icon: Icons.lock_rounded,
+        icon: LucideIcons.lock,
         loading: _busy,
         onPressed: _busy
             ? null

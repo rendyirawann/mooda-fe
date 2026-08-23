@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../core/api_client.dart';
 import '../core/theme.dart';
@@ -110,7 +111,7 @@ class _MejaScreenState extends State<MejaScreen> {
           onTap: _addDialog,
           radius: 100,
           padding: const EdgeInsets.all(13),
-          child: const Icon(Icons.add_rounded, size: 20, color: MoodaTheme.ink),
+          child: const Icon(LucideIcons.plus, size: 20, color: MoodaTheme.ink),
         ),
       ],
       child: (_loading || _error != null || _tables.isEmpty)
@@ -134,7 +135,7 @@ class _MejaScreenState extends State<MejaScreen> {
                               fontWeight: FontWeight.w700, color: MoodaTheme.ink),
                         ),
                       ),
-                      const Icon(Icons.table_restaurant_rounded,
+                      const Icon(LucideIcons.armchair,
                           color: MoodaTheme.primary),
                     ],
                   ),
@@ -162,8 +163,8 @@ class _MejaScreenState extends State<MejaScreen> {
                         children: [
                           ClayIconBadge(
                             icon: busy
-                                ? Icons.no_food_rounded
-                                : Icons.table_restaurant_rounded,
+                                ? LucideIcons.utensilsCrossed
+                                : LucideIcons.armchair,
                             color: color,
                             size: 42,
                           ),

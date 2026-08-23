@@ -9,7 +9,10 @@ import '../widgets/module_scaffold.dart';
 
 /// Laporan penjualan + dashboard HPP. Semua angka datang dari server.
 class LaporanScreen extends StatefulWidget {
-  const LaporanScreen({super.key, this.focusHpp = false});
+  const LaporanScreen({super.key, this.focusHpp = false, this.embedded = false});
+
+  /// true bila dipakai sebagai tab di ShellScreen.
+  final bool embedded;
 
   /// Buka langsung pada bagian HPP (dipakai tile "HPP" di dashboard).
   final bool focusHpp;
@@ -66,6 +69,7 @@ class _LaporanScreenState extends State<LaporanScreen> {
   Widget build(BuildContext context) {
     return ModuleScaffold(
       title: widget.focusHpp ? 'HPP' : 'Laporan',
+      showBack: !widget.embedded,
       onRefresh: _load,
       child: (_loading || _error != null)
           ? ModuleState(loading: _loading, error: _error, onRetry: _load)

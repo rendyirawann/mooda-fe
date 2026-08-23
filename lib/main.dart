@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'core/config.dart';
 import 'core/session.dart';
 import 'core/theme.dart';
-import 'screens/dashboard_screen.dart';
+import 'screens/shell_screen.dart';
 import 'screens/login_screen.dart';
 
 void main() => runApp(const MoodaApp());
@@ -48,6 +48,6 @@ class _GateState extends State<_Gate> {
         body: Center(child: CircularProgressIndicator()),
       );
     }
-    return _authed! ? const DashboardScreen() : const LoginScreen();
+    return _authed! ? const ShellScreen() : const LoginScreen();
   }
 }
