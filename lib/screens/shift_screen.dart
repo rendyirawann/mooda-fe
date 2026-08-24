@@ -75,6 +75,7 @@ class _ShiftScreenState extends State<ShiftScreen> {
         TextField(
           controller: ctrl,
           keyboardType: TextInputType.number,
+          inputFormatters: const [RupiahInputFormatter()],
           autofocus: true,
           decoration: InputDecoration(labelText: label),
         ),

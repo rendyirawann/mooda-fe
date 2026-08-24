@@ -12,6 +12,7 @@ import '../services/offline_queue.dart';
 import '../services/printer_service.dart';
 import '../widgets/clay.dart';
 import '../widgets/feedback.dart';
+import '../widgets/paging.dart';
 import 'payment_dialog.dart';
 import 'pengaturan_screen.dart';
 
@@ -47,6 +48,7 @@ class _KasirScreenState extends State<KasirScreen> {
   int _menuPage = 1;
   bool _menuHasMore = false;
   bool _menuLoadingMore = false;
+  int _menuTotal = 0;
 
   // Daftar nota untuk tab Diproses / Selesai (juga berhalaman).
   List<Map<String, dynamic>> _orders = [];
@@ -54,6 +56,7 @@ class _KasirScreenState extends State<KasirScreen> {
   int _orderPage = 1;
   bool _orderHasMore = false;
   bool _orderLoadingMore = false;
+  int _orderTotal = 0;
 
   // Printer & antrean offline.
   SavedPrinter? _printer;
@@ -98,6 +101,7 @@ class _KasirScreenState extends State<KasirScreen> {
         setState(() {
           _menus = r.items;
           _menuHasMore = r.hasMore;
+          _menuTotal = r.total;
         });
       }
     } catch (e) {
@@ -145,6 +149,7 @@ class _KasirScreenState extends State<KasirScreen> {
         setState(() {
           _orders = r.items;
           _orderHasMore = r.hasMore;
+          _orderTotal = r.total;
         });
       }
     } catch (e) {
@@ -590,21 +595,17 @@ class _KasirScreenState extends State<KasirScreen> {
               itemBuilder: (_, i) => FadeSlideIn(index: i, child: _menuCard(items[i])),
             ),
           ),
-          if (_menuLoadingMore) _loadingMore(),
+          PagingFooter(
+            shown: _menus.length,
+            total: _menuTotal,
+            hasMore: _menuHasMore,
+            loading: _menuLoadingMore,
+            onLoadMore: _loadMoreMenus,
+          ),
         ],
       ),
     );
   }
-
-  /// Penanda sedang memuat halaman berikutnya.
-  Widget _loadingMore() => const Padding(
-        padding: EdgeInsets.only(bottom: 12),
-        child: SizedBox(
-          height: 18,
-          width: 18,
-          child: CircularProgressIndicator(strokeWidth: 2.2),
-        ),
-      );
 
   Widget _menuCard(MenuItem m) {
     final inCart = _cart.where((l) => l.menu.id == m.id).fold<int>(0, (a, l) => a + l.qty);
@@ -844,7 +845,13 @@ class _KasirScreenState extends State<KasirScreen> {
                   FadeSlideIn(index: i, child: _orderCard(_orders[i])),
             ),
           ),
-          if (_orderLoadingMore) _loadingMore(),
+          PagingFooter(
+            shown: _orders.length,
+            total: _orderTotal,
+            hasMore: _orderHasMore,
+            loading: _orderLoadingMore,
+            onLoadMore: _loadMoreOrders,
+          ),
         ],
       ),
     );
@@ -898,6 +905,17 @@ class _KasirScreenState extends State<KasirScreen> {
                       '$status · ${paid ? (o['payment_method'] ?? 'lunas') : 'belum lunas'}',
                       style: const TextStyle(color: MoodaTheme.muted, fontSize: 11),
                     ),
+                    // Nota tunai: tampilkan uang diterima & kembaliannya
+                    // (tersimpan di DB: orders.cash_received / change_amount).
+                    if (paid && o['payment_method'] == 'cash')
+                      Text(
+                        'Tunai ${Rupiah.format(((o['cash_received'] ?? 0) as num).toDouble())}'
+                        ' · Kembali ${Rupiah.format(((o['change_amount'] ?? 0) as num).toDouble())}',
+                        style: const TextStyle(
+                            color: MoodaTheme.success,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700),
+                      ),
                   ],
                 ),
               ),
@@ -1052,6 +1070,7 @@ class _KasirScreenState extends State<KasirScreen> {
                     TextField(
                       controller: cash,
                       keyboardType: TextInputType.number,
+                      inputFormatters: const [RupiahInputFormatter()],
                       decoration: const InputDecoration(labelText: 'Uang diterima'),
                     ),
                   ],

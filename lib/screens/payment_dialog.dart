@@ -496,6 +496,7 @@ class _PaymentDialogState extends State<_PaymentDialog> {
           TextField(
             controller: _cash,
             keyboardType: TextInputType.number,
+            inputFormatters: const [RupiahInputFormatter()],
             onChanged: (_) => setState(() {}),
             decoration: const InputDecoration(labelText: 'Uang diterima'),
           ),

@@ -7,6 +7,7 @@ import '../core/theme.dart';
 import '../services/fnb_service.dart';
 import '../widgets/clay.dart';
 import '../widgets/module_scaffold.dart';
+import '../widgets/paging.dart';
 
 /// Riwayat pesanan + detail nota.
 class PesananScreen extends StatefulWidget {
@@ -29,6 +30,7 @@ class _PesananScreenState extends State<PesananScreen> {
   int _page = 1;
   bool _hasMore = false;
   bool _loadingMore = false;
+  int _total = 0;
 
   @override
   void initState() {
@@ -49,6 +51,7 @@ class _PesananScreenState extends State<PesananScreen> {
         setState(() {
           _orders = r.items;
           _hasMore = r.hasMore;
+          _total = r.total;
         });
       }
     } catch (e) {
@@ -177,6 +180,14 @@ class _PesananScreenState extends State<PesananScreen> {
                     ),
                   ),
           ),
+          if (!_loading && _error == null && _orders.isNotEmpty)
+            PagingFooter(
+              shown: _orders.length,
+              total: _total,
+              hasMore: _hasMore,
+              loading: _loadingMore,
+              onLoadMore: _loadMore,
+            ),
         ],
       ),
     );
@@ -286,6 +297,12 @@ class _PesananScreenState extends State<PesananScreen> {
               _row('Subtotal', ((o['subtotal'] ?? 0) as num).toDouble()),
               _row('Pajak', ((o['tax'] ?? 0) as num).toDouble()),
               _row('Total', ((o['grand_total'] ?? 0) as num).toDouble(), strong: true),
+              // Nota tunai: tersimpan di DB, jadi kembaliannya bisa ditampilkan.
+              if (o['payment_method'] == 'cash') ...[
+                const SizedBox(height: 6),
+                _row('Uang diterima', ((o['cash_received'] ?? 0) as num).toDouble()),
+                _row('Kembalian', ((o['change_amount'] ?? 0) as num).toDouble()),
+              ],
               const SizedBox(height: 18),
               ClayButton(
                 label: 'Tutup',

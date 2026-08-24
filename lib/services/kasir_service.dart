@@ -88,7 +88,7 @@ class KasirService {
 
   /// Daftar menu BERHALAMAN. `hasMore` dipakai untuk memuat halaman berikutnya
   /// saat pengguna menggulir sampai bawah.
-  static Future<({List<MenuItem> items, bool hasMore, int page})> menusPage({
+  static Future<({List<MenuItem> items, bool hasMore, int page, int total})> menusPage({
     String? query,
     int page = 1,
     int perPage = 30,
@@ -111,6 +111,7 @@ class KasirService {
       // Server lama (belum berhalaman) tak mengirim meta -> anggap selesai.
       hasMore: meta['has_more'] == true,
       page: ((meta['page'] ?? page) as num).toInt(),
+      total: ((meta['total'] ?? list.length) as num).toInt(),
     );
   }
 

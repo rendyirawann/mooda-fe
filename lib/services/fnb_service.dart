@@ -90,7 +90,7 @@ class FnbService {
 
   // ---------------- Menu & Resep ----------------
   /// Daftar menu BERHALAMAN (dipakai layar Menu & Resep).
-  static Future<({List<Map<String, dynamic>> items, bool hasMore})> menusPage({
+  static Future<({List<Map<String, dynamic>> items, bool hasMore, int total})> menusPage({
     int page = 1,
     int perPage = 30,
   }) async {
@@ -98,7 +98,13 @@ class FnbService {
         queryParameters: {'page': page, 'per_page': perPage});
     final meta = Map<String, dynamic>.from((r.data['meta'] ?? const {}) as Map);
 
-    return (items: _list(r.data['data']), hasMore: meta['has_more'] == true);
+    final items = _list(r.data['data']);
+
+    return (
+      items: items,
+      hasMore: meta['has_more'] == true,
+      total: ((meta['total'] ?? items.length) as num).toInt(),
+    );
   }
 
   static Future<List<Map<String, dynamic>>> menus() async =>
@@ -165,7 +171,7 @@ class FnbService {
   // ---------------- Aksi pesanan (dipakai tab kasir) ----------------
   /// Daftar pesanan BERHALAMAN dengan filter status; boleh dipisah koma,
   /// mis. `'pending,cooking,served'` untuk tab "Sedang diproses".
-  static Future<({List<Map<String, dynamic>> items, bool hasMore})> ordersPage({
+  static Future<({List<Map<String, dynamic>> items, bool hasMore, int total})> ordersPage({
     String? orderStatus,
     String? paymentStatus,
     int page = 1,
@@ -180,7 +186,13 @@ class FnbService {
 
     final meta = Map<String, dynamic>.from((r.data['meta'] ?? const {}) as Map);
 
-    return (items: _list(r.data['data']), hasMore: meta['has_more'] == true);
+    final items = _list(r.data['data']);
+
+    return (
+      items: items,
+      hasMore: meta['has_more'] == true,
+      total: ((meta['total'] ?? items.length) as num).toInt(),
+    );
   }
 
   static Future<List<Map<String, dynamic>>> ordersByStatus(String orderStatus) async =>

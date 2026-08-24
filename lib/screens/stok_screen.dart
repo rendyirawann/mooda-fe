@@ -84,6 +84,7 @@ class _StokScreenState extends State<StokScreen> {
               TextField(
                 controller: total,
                 keyboardType: TextInputType.number,
+                inputFormatters: const [RupiahInputFormatter()],
                 decoration: const InputDecoration(labelText: 'Total pembelian (Rp)'),
               )
             else

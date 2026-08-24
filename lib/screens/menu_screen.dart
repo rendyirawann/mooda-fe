@@ -7,6 +7,7 @@ import '../core/theme.dart';
 import '../services/fnb_service.dart';
 import '../widgets/clay.dart';
 import '../widgets/module_scaffold.dart';
+import '../widgets/paging.dart';
 
 /// Daftar menu; ketuk untuk melihat resep + estimasi HPP/margin dari server.
 class MenuScreen extends StatefulWidget {
@@ -25,6 +26,7 @@ class _MenuScreenState extends State<MenuScreen> {
   int _page = 1;
   bool _hasMore = false;
   bool _loadingMore = false;
+  int _total = 0;
 
   @override
   void initState() {
@@ -45,6 +47,7 @@ class _MenuScreenState extends State<MenuScreen> {
         setState(() {
           _menus = r.items;
           _hasMore = r.hasMore;
+          _total = r.total;
         });
       }
     } catch (e) {
@@ -103,7 +106,10 @@ class _MenuScreenState extends State<MenuScreen> {
               emptyText: 'Belum ada menu',
               onRetry: _load,
             )
-          : NotificationListener<ScrollNotification>(
+          : Column(
+              children: [
+                Expanded(
+                  child: NotificationListener<ScrollNotification>(
               onNotification: (n) {
                 if (n.metrics.pixels >= n.metrics.maxScrollExtent - 300) _loadMore();
 
@@ -166,7 +172,17 @@ class _MenuScreenState extends State<MenuScreen> {
                   ),
                 );
               },
-              ),
+                    ),
+                  ),
+                ),
+                PagingFooter(
+                  shown: _menus.length,
+                  total: _total,
+                  hasMore: _hasMore,
+                  loading: _loadingMore,
+                  onLoadMore: _loadMore,
+                ),
+              ],
             ),
     );
   }
