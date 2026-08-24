@@ -12,7 +12,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   dio: ^5.7.0                 # HTTP client (only-hit-API)
   shared_preferences: ^2.3.2 # simpan token
-  intl: ^0.19.0              # format Rupiah / tanggal
+  intl: ^0.20.2              # format Rupiah / tanggal
   flutter_svg: ^2.0.10       # aset dekoratif & ilustrasi (SVG)
   permission_handler: ^11.3.1 # minta izin runtime (lokasi, kamera, media)
   lucide_icons_flutter: ^3.1.17
@@ -20,6 +20,8 @@ dependencies:
   print_bluetooth_thermal: ^1.2.2
   url_launcher: ^6.3.2
   universal_ble: ^2.1.1
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:

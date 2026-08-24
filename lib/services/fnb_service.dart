@@ -89,10 +89,20 @@ class FnbService {
   }
 
   // ---------------- Menu & Resep ----------------
-  static Future<List<Map<String, dynamic>>> menus() async {
-    final r = await ApiClient.dio.get('/fnb/menus');
-    return _list(r.data['data']);
+  /// Daftar menu BERHALAMAN (dipakai layar Menu & Resep).
+  static Future<({List<Map<String, dynamic>> items, bool hasMore})> menusPage({
+    int page = 1,
+    int perPage = 30,
+  }) async {
+    final r = await ApiClient.dio.get('/fnb/menus',
+        queryParameters: {'page': page, 'per_page': perPage});
+    final meta = Map<String, dynamic>.from((r.data['meta'] ?? const {}) as Map);
+
+    return (items: _list(r.data['data']), hasMore: meta['has_more'] == true);
   }
+
+  static Future<List<Map<String, dynamic>>> menus() async =>
+      (await menusPage()).items;
 
   static Future<Map<String, dynamic>> recipe(int menuId) async {
     final r = await ApiClient.dio.get('/fnb/recipes/$menuId');
@@ -153,16 +163,28 @@ class FnbService {
       ApiClient.dio.post('/shifts/close', data: {'actual_cash': actualCash});
 
   // ---------------- Aksi pesanan (dipakai tab kasir) ----------------
-  /// Daftar pesanan dengan filter status; boleh dipisah koma,
+  /// Daftar pesanan BERHALAMAN dengan filter status; boleh dipisah koma,
   /// mis. `'pending,cooking,served'` untuk tab "Sedang diproses".
-  static Future<List<Map<String, dynamic>>> ordersByStatus(String orderStatus) async {
-    final r = await ApiClient.dio.get(
-      '/fnb/orders',
-      queryParameters: {'order_status': orderStatus},
-    );
+  static Future<({List<Map<String, dynamic>> items, bool hasMore})> ordersPage({
+    String? orderStatus,
+    String? paymentStatus,
+    int page = 1,
+    int perPage = 25,
+  }) async {
+    final r = await ApiClient.dio.get('/fnb/orders', queryParameters: {
+      if (orderStatus != null) 'order_status': orderStatus,
+      if (paymentStatus != null) 'payment_status': paymentStatus,
+      'page': page,
+      'per_page': perPage,
+    });
 
-    return _list(r.data['data']);
+    final meta = Map<String, dynamic>.from((r.data['meta'] ?? const {}) as Map);
+
+    return (items: _list(r.data['data']), hasMore: meta['has_more'] == true);
   }
+
+  static Future<List<Map<String, dynamic>>> ordersByStatus(String orderStatus) async =>
+      (await ordersPage(orderStatus: orderStatus)).items;
 
   /// Lunasi pesanan yang belum dibayar.
   static Future<void> payOrder(int id, String method, {double? cashReceived}) =>

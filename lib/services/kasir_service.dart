@@ -86,16 +86,37 @@ class OrderResult {
 class KasirService {
   KasirService._();
 
-  static Future<List<MenuItem>> menus({String? query}) async {
+  /// Daftar menu BERHALAMAN. `hasMore` dipakai untuk memuat halaman berikutnya
+  /// saat pengguna menggulir sampai bawah.
+  static Future<({List<MenuItem> items, bool hasMore, int page})> menusPage({
+    String? query,
+    int page = 1,
+    int perPage = 30,
+  }) async {
     final res = await ApiClient.dio.get('/fnb/menus', queryParameters: {
       if (query != null && query.isNotEmpty) 'q': query,
+      'page': page,
+      'per_page': perPage,
     });
-    final list = (res.data['data'] as List? ?? const []);
-    return list
+
+    final list = (res.data['data'] as List? ?? const [])
         .whereType<Map>()
         .map((e) => MenuItem.fromJson(Map<String, dynamic>.from(e)))
         .toList();
+
+    final meta = Map<String, dynamic>.from((res.data['meta'] ?? const {}) as Map);
+
+    return (
+      items: list,
+      // Server lama (belum berhalaman) tak mengirim meta -> anggap selesai.
+      hasMore: meta['has_more'] == true,
+      page: ((meta['page'] ?? page) as num).toInt(),
+    );
   }
+
+  /// Halaman pertama saja (dipakai tempat yang tak butuh gulir tanpa batas).
+  static Future<List<MenuItem>> menus({String? query}) async =>
+      (await menusPage(query: query)).items;
 
   /// Buat pesanan. [clientTxnId] membuat percobaan ulang aman (idempoten).
   static Future<OrderResult> createOrder({

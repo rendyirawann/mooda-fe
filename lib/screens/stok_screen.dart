@@ -323,7 +323,10 @@ class _StokScreenState extends State<StokScreen> {
                     ),
                   ),
               const SizedBox(height: 18),
-              ClayButton(label: 'Tutup', onPressed: () => Navigator.of(context).pop()),
+              ClayButton(
+                  label: 'Tutup',
+                  icon: LucideIcons.x,
+                  onPressed: () => Navigator.of(context).pop()),
             ],
           ),
         ),

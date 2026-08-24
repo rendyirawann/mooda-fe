@@ -125,7 +125,7 @@ class ClayButton extends StatelessWidget {
     this.expand = true,
     this.color,
     this.textColor = Colors.white,
-    this.height = 54,
+    this.height = 50,
   });
 
   final String label;

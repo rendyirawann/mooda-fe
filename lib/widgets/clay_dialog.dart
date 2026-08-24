@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../core/motion.dart';
 import '../core/theme.dart';
 import 'clay.dart';
 
@@ -20,10 +21,11 @@ Future<T?> showClayDialog<T>({
   List<Widget> actions = const [],
   bool dismissible = true,
 }) {
-  return showDialog<T>(
+  // Memakai showAnimatedDialog: sudah membungkus Material (mencegah teks
+  // bergaris bawah kuning) dan memberi animasi mengembang + memudar.
+  return showAnimatedDialog<T>(
     context: context,
-    barrierDismissible: dismissible,
-    barrierColor: Colors.black.withValues(alpha: 0.35),
+    dismissible: dismissible,
     builder: (ctx) {
       final media = MediaQuery.of(ctx);
       final maxH = media.size.height -
@@ -151,6 +153,7 @@ Future<bool?> showClayFormDialog({
       Builder(
         builder: (ctx) => ClayButton(
           label: 'Batal',
+          icon: LucideIcons.x,
           color: MoodaTheme.bg,
           textColor: MoodaTheme.muted,
           height: 46,

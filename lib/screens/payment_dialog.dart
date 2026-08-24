@@ -3,6 +3,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../core/api_client.dart';
 import '../core/format.dart';
+import '../core/motion.dart';
 import '../core/theme.dart';
 import '../services/fnb_service.dart';
 import '../services/kasir_service.dart';
@@ -15,9 +16,9 @@ import '../widgets/clay.dart';
 /// Muncul dari TENGAH layar (bukan menempel di bawah) supaya tombol aksinya
 /// tidak pernah tertutup tombol navigasi Android.
 Future<bool?> showPaymentDialog(BuildContext context, List<CartLine> cart) {
-  return showDialog<bool>(
+  // showAnimatedDialog membungkus Material + memberi animasi masuk.
+  return showAnimatedDialog<bool>(
     context: context,
-    barrierColor: Colors.black.withValues(alpha: 0.35),
     builder: (_) => _PaymentDialog(cart: cart),
   );
 }
@@ -545,15 +546,16 @@ class _PaymentDialogState extends State<_PaymentDialog> {
       child: ClayBox(
         radius: MoodaTheme.radius,
         color: active ? MoodaTheme.primary : null,
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        padding: const EdgeInsets.symmetric(vertical: 11),
         blur: 14,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 18, color: active ? Colors.white : MoodaTheme.ink),
-            const SizedBox(width: 8),
+            Icon(icon, size: 16, color: active ? Colors.white : MoodaTheme.ink),
+            const SizedBox(width: 7),
             Text(label,
                 style: TextStyle(
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: active ? Colors.white : MoodaTheme.ink)),
           ],

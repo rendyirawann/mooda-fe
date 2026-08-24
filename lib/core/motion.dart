@@ -120,7 +120,12 @@ Future<T?> showAnimatedDialog<T>({
     barrierLabel: 'tutup',
     barrierColor: Colors.black.withValues(alpha: 0.35),
     transitionDuration: Motion.normal,
-    pageBuilder: (ctx, _, __) => builder(ctx),
+    // WAJIB dibungkus Material: tanpa ancestor Material, Flutter menggambar teks
+    // dengan gaya cadangan — muncul garis bawah kuning ganda pada semua tulisan.
+    pageBuilder: (ctx, _, __) => Material(
+      type: MaterialType.transparency,
+      child: builder(ctx),
+    ),
     transitionBuilder: (_, anim, __, child) {
       final curved = CurvedAnimation(parent: anim, curve: Motion.enter);
       return FadeTransition(

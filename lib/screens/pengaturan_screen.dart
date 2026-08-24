@@ -75,18 +75,8 @@ class _PengaturanScreenState extends State<PengaturanScreen> {
   // ------------------------------------------------------------------ printer
   /// Pilih printer: daftar Bluetooth terpasang + hasil pindai BLE + jalur RawBT.
   Future<void> _pickPrinter() async {
-    final granted = await Permissions.request(AppPermission.bluetooth);
-    if (!granted && mounted) {
-      Notify.toast(
-        context,
-        'Izin Bluetooth diperlukan untuk mencari printer.',
-        success: false,
-      );
-      // Tetap lanjut: pilihan RawBT (USB) tak butuh izin Bluetooth.
-    }
-
-    if (!mounted) return;
-
+    // Izin TIDAK diminta di sini: daftar Bluetooth terpasang & pilihan RawBT
+    // (USB) tak memerlukannya. Izin diminta tepat saat menekan "Pindai".
     await showClayDialog<void>(
       context: context,
       title: 'Pilih printer',
@@ -479,6 +469,7 @@ class _PrinterPickerState extends State<_PrinterPicker> {
   List<PrinterDevice> _ble = [];
   bool _loading = true;
   bool _scanning = false;
+  String? _scanNote;
 
   @override
   void initState() {
@@ -496,12 +487,50 @@ class _PrinterPickerState extends State<_PrinterPicker> {
     }
   }
 
+  /// Pindai BLE. Izin diminta DI SINI (tepat sebelum memindai) dan setiap
+  /// kegagalan dijelaskan, supaya tombol tidak pernah terasa "tidak bereaksi".
   Future<void> _scanBle() async {
-    setState(() => _scanning = true);
-    final list = await PrinterService.scanBle();
+    setState(() {
+      _scanning = true;
+      _scanNote = null;
+    });
+
+    final granted = await Permissions.request(AppPermission.bluetooth);
+    if (!granted) {
+      final permanent = await Permissions.isPermanentlyDenied(AppPermission.bluetooth);
+      if (mounted) {
+        setState(() {
+          _scanning = false;
+          _scanNote = permanent
+              ? 'Izin Bluetooth ditolak permanen. Aktifkan dari Setelan aplikasi.'
+              : 'Izin Bluetooth diperlukan untuk memindai printer.';
+        });
+      }
+
+      return;
+    }
+
+    // Bluetooth mati -> minta sistem menyalakannya (Android memunculkan dialog),
+    // supaya pengguna tak perlu keluar aplikasi dulu.
+    if (!await PrinterService.bluetoothOn()) {
+      final on = await PrinterService.enableBluetooth();
+      if (!on) {
+        if (mounted) {
+          setState(() {
+            _scanning = false;
+            _scanNote = 'Bluetooth masih mati. Nyalakan Bluetooth lalu pindai lagi.';
+          });
+        }
+
+        return;
+      }
+    }
+
+    final res = await PrinterService.scanBle();
     if (mounted) {
       setState(() {
-        _ble = list;
+        _ble = res.devices;
+        _scanNote = res.error;
         _scanning = false;
       });
     }
@@ -539,22 +568,70 @@ class _PrinterPickerState extends State<_PrinterPicker> {
                   style: TextStyle(
                       fontSize: 12.5, fontWeight: FontWeight.w800, color: MoodaTheme.ink)),
             ),
-            GestureDetector(
+            // Tombol dengan area sentuh yang layak (sebelumnya hanya selebar teks,
+            // sehingga sering tidak kena saat ditekan).
+            ClayTappable(
               onTap: _scanning ? null : _scanBle,
-              child: Text(
-                _scanning ? 'Memindai...' : 'Pindai',
-                style: const TextStyle(
-                    color: MoodaTheme.primary, fontSize: 12, fontWeight: FontWeight.w700),
+              radius: 100,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_scanning)
+                    const SizedBox(
+                      width: 13,
+                      height: 13,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: MoodaTheme.primary),
+                    )
+                  else
+                    const Icon(LucideIcons.radar, size: 15, color: MoodaTheme.primary),
+                  const SizedBox(width: 7),
+                  Text(
+                    _scanning ? 'Memindai...' : 'Pindai',
+                    style: const TextStyle(
+                        color: MoodaTheme.primary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700),
+                  ),
+                ],
               ),
             ),
           ],
         ),
         const SizedBox(height: 8),
-        if (_ble.isEmpty)
-          const Text('Tekan "Pindai" untuk mencari printer BLE di sekitar.',
-              style: TextStyle(color: MoodaTheme.muted, fontSize: 12))
+        if (_ble.isNotEmpty)
+          for (final d in _ble) _row(d)
         else
-          for (final d in _ble) _row(d),
+          Text(
+            _scanning
+                ? 'Mencari printer di sekitar (±6 detik)...'
+                : (_scanNote ??
+                    'Tekan "Pindai" untuk mencari printer BLE di sekitar.'),
+            style: TextStyle(
+              color: _scanNote != null && !_scanning
+                  ? const Color(0xFF9A6700)
+                  : MoodaTheme.muted,
+              fontSize: 12,
+            ),
+          ),
+        if (_scanNote != null && !_scanning) ...[
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: Permissions.openSettings,
+            behavior: HitTestBehavior.opaque,
+            child: const Padding(
+              padding: EdgeInsets.symmetric(vertical: 4),
+              child: Text(
+                'Buka Setelan aplikasi',
+                style: TextStyle(
+                    color: MoodaTheme.primary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+        ],
 
         const SizedBox(height: 16),
         const Divider(height: 1),

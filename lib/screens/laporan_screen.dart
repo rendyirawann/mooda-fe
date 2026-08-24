@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../core/api_client.dart';
 import '../core/format.dart';
@@ -26,12 +27,28 @@ class _LaporanScreenState extends State<LaporanScreen> {
   Map<String, dynamic>? _hpp;
   bool _loading = true;
   String? _error;
-  int _days = 0; // 0 = hari ini, 6 = 7 hari, 29 = 30 hari
+
+  /// Preset cepat: 0 = hari ini, 6 = 7 hari, 29 = 30 hari.
+  /// null artinya memakai rentang tanggal pilihan sendiri ([_from]–[_to]).
+  int? _days = 0;
+  DateTime? _from;
+  DateTime? _to;
 
   @override
   void initState() {
     super.initState();
     _load();
+  }
+
+  /// Rentang yang sedang aktif (preset atau pilihan tanggal).
+  ({DateTime from, DateTime to}) get _range {
+    if (_days == null && _from != null && _to != null) {
+      return (from: _from!, to: _to!);
+    }
+
+    final now = DateTime.now();
+
+    return (from: now.subtract(Duration(days: _days ?? 0)), to: now);
   }
 
   Future<void> _load() async {
@@ -40,10 +57,9 @@ class _LaporanScreenState extends State<LaporanScreen> {
       _error = null;
     });
     try {
-      final now = DateTime.now();
-      final from = now.subtract(Duration(days: _days));
-      final f = _fmt(from);
-      final t = _fmt(now);
+      final r = _range;
+      final f = _fmt(r.from);
+      final t = _fmt(r.to);
 
       final sales = await FnbService.sales(from: f, to: t);
       final hpp = await FnbService.hpp(from: f, to: t);
@@ -90,33 +106,162 @@ class _LaporanScreenState extends State<LaporanScreen> {
 
   Widget _periodPicker() {
     const opts = [(0, 'Hari ini'), (6, '7 hari'), (29, '30 hari')];
-    return Row(
+    final r = _range;
+    final custom = _days == null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final (d, label) in opts) ...[
-          Expanded(
-            child: ClayTappable(
-              onTap: () {
-                setState(() => _days = d);
-                _load();
-              },
-              gradient: _days == d ? MoodaTheme.clayPrimary : null,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Center(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 12.5,
-                    color: _days == d ? Colors.white : MoodaTheme.ink,
+        Row(
+          children: [
+            for (final (d, label) in opts) ...[
+              Expanded(
+                child: ClayTappable(
+                  onTap: () {
+                    setState(() {
+                      _days = d;
+                      _from = null;
+                      _to = null;
+                    });
+                    _load();
+                  },
+                  radius: MoodaTheme.radius,
+                  color: _days == d ? MoodaTheme.primary : null,
+                  padding: const EdgeInsets.symmetric(vertical: 11),
+                  child: Center(
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12.5,
+                        color: _days == d ? Colors.white : MoodaTheme.ink,
+                      ),
+                    ),
                   ),
                 ),
               ),
+              if (d != 29) const SizedBox(width: 9),
+            ],
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            // Pilih satu tanggal tertentu.
+            Expanded(
+              child: ClayTappable(
+                onTap: _pickSingleDate,
+                radius: MoodaTheme.radius,
+                padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(LucideIcons.calendar, size: 15, color: MoodaTheme.primary),
+                    const SizedBox(width: 7),
+                    Text(
+                      'Pilih tanggal',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: custom ? MoodaTheme.primary : MoodaTheme.ink,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
+            const SizedBox(width: 9),
+            // Pilih rentang tanggal (dari–sampai).
+            Expanded(
+              child: ClayTappable(
+                onTap: _pickDateRange,
+                radius: MoodaTheme.radius,
+                padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(LucideIcons.calendarRange,
+                        size: 15, color: MoodaTheme.primary),
+                    const SizedBox(width: 7),
+                    Text(
+                      'Rentang',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: custom ? MoodaTheme.primary : MoodaTheme.ink,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        // Periode yang sedang ditampilkan — supaya angka tidak pernah ambigu.
+        Center(
+          child: Text(
+            _rangeLabel(r.from, r.to),
+            style: const TextStyle(
+                color: MoodaTheme.muted, fontSize: 11.5, fontWeight: FontWeight.w600),
           ),
-          if (d != 29) const SizedBox(width: 10),
-        ],
+        ),
       ],
     );
+  }
+
+  String _rangeLabel(DateTime from, DateTime to) {
+    String d(DateTime x) =>
+        '${x.day.toString().padLeft(2, '0')}/${x.month.toString().padLeft(2, '0')}/${x.year}';
+
+    return _fmt(from) == _fmt(to)
+        ? 'Periode: ${d(from)}'
+        : 'Periode: ${d(from)} – ${d(to)}';
+  }
+
+  Future<void> _pickSingleDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _from ?? now,
+      firstDate: DateTime(now.year - 3),
+      lastDate: now,
+      helpText: 'Pilih tanggal laporan',
+      locale: const Locale('id'),
+    );
+
+    if (picked == null) return;
+
+    setState(() {
+      _days = null;
+      _from = picked;
+      _to = picked;
+    });
+    _load();
+  }
+
+  Future<void> _pickDateRange() async {
+    final now = DateTime.now();
+    final picked = await showDateRangePicker(
+      context: context,
+      initialDateRange: (_from != null && _to != null)
+          ? DateTimeRange(start: _from!, end: _to!)
+          : DateTimeRange(start: now.subtract(const Duration(days: 6)), end: now),
+      firstDate: DateTime(now.year - 3),
+      lastDate: now,
+      helpText: 'Pilih rentang tanggal',
+      saveText: 'Terapkan',
+      locale: const Locale('id'),
+    );
+
+    if (picked == null) return;
+
+    setState(() {
+      _days = null;
+      _from = picked.start;
+      _to = picked.end;
+    });
+    _load();
   }
 
   Widget _salesCard() {

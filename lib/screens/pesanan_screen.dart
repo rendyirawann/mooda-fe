@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../core/api_client.dart';
 import '../core/format.dart';
@@ -24,6 +25,11 @@ class _PesananScreenState extends State<PesananScreen> {
   String? _error;
   String? _filter; // null = semua
 
+  // Paginasi riwayat.
+  int _page = 1;
+  bool _hasMore = false;
+  bool _loadingMore = false;
+
   @override
   void initState() {
     super.initState();
@@ -34,14 +40,44 @@ class _PesananScreenState extends State<PesananScreen> {
     setState(() {
       _loading = true;
       _error = null;
+      _page = 1;
+      _hasMore = false;
     });
     try {
-      final data = await FnbService.orders(paymentStatus: _filter);
-      if (mounted) setState(() => _orders = data);
+      final r = await FnbService.ordersPage(paymentStatus: _filter, page: 1);
+      if (mounted) {
+        setState(() {
+          _orders = r.items;
+          _hasMore = r.hasMore;
+        });
+      }
     } catch (e) {
       if (mounted) setState(() => _error = ApiClient.errorMessage(e));
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  /// Halaman riwayat berikutnya (dipanggil saat gulir mendekati bawah).
+  Future<void> _loadMore() async {
+    if (_loadingMore || !_hasMore) return;
+    setState(() => _loadingMore = true);
+    try {
+      final r = await FnbService.ordersPage(
+        paymentStatus: _filter,
+        page: _page + 1,
+      );
+      if (mounted) {
+        setState(() {
+          _orders = [..._orders, ...r.items];
+          _page += 1;
+          _hasMore = r.hasMore;
+        });
+      }
+    } catch (_) {
+      // Gagal memuat tambahan tak perlu menghapus daftar yang sudah tampil.
+    } finally {
+      if (mounted) setState(() => _loadingMore = false);
     }
   }
 
@@ -113,11 +149,32 @@ class _PesananScreenState extends State<PesananScreen> {
                     emptyText: 'Belum ada pesanan',
                     onRetry: _load,
                   )
-                : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(18, 0, 18, 20),
-                    itemCount: _orders.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (_, i) => _card(_orders[i]),
+                : NotificationListener<ScrollNotification>(
+                    // Gulir mendekati bawah -> muat halaman berikutnya.
+                    onNotification: (n) {
+                      if (n.metrics.pixels >= n.metrics.maxScrollExtent - 300) {
+                        _loadMore();
+                      }
+
+                      return false;
+                    },
+                    child: ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(18, 0, 18, 20),
+                      itemCount: _orders.length + (_loadingMore ? 1 : 0),
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (_, i) => i >= _orders.length
+                          ? const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(12),
+                                child: SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(strokeWidth: 2.2),
+                                ),
+                              ),
+                            )
+                          : _card(_orders[i]),
+                    ),
                   ),
           ),
         ],
@@ -232,6 +289,7 @@ class _PesananScreenState extends State<PesananScreen> {
               const SizedBox(height: 18),
               ClayButton(
                 label: 'Tutup',
+                icon: LucideIcons.x,
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ],

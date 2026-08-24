@@ -134,15 +134,55 @@ class PrinterService {
     }
   }
 
-  /// Pindai printer BLE di sekitar.
-  static Future<List<PrinterDevice>> scanBle({
+  /// Bluetooth perangkat sedang menyala?
+  static Future<bool> bluetoothOn() async {
+    try {
+      return await UniversalBle.getBluetoothAvailabilityState() ==
+          AvailabilityState.poweredOn;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Minta sistem menyalakan Bluetooth (Android menampilkan dialog izin).
+  /// Mengembalikan true bila akhirnya menyala.
+  static Future<bool> enableBluetooth() async {
+    try {
+      final ok = await UniversalBle.enableBluetooth();
+      if (ok) return true;
+    } catch (_) {
+      // Sebagian perangkat menolak permintaan otomatis -> cek keadaan terkini.
+    }
+
+    return bluetoothOn();
+  }
+
+  /// Hasil pemindaian BLE beserta ALASAN bila kosong.
+  ///
+  /// Sengaja mengembalikan alasan (bukan daftar kosong tanpa penjelasan), supaya
+  /// layar bisa memberi tahu pengguna kenapa tak ada printer yang muncul.
+  static Future<({List<PrinterDevice> devices, String? error})> scanBle({
     Duration timeout = const Duration(seconds: 6),
   }) async {
     final found = <String, PrinterDevice>{};
 
     try {
       final state = await UniversalBle.getBluetoothAvailabilityState();
-      if (state != AvailabilityState.poweredOn) return const [];
+
+      final problem = switch (state) {
+        AvailabilityState.poweredOff =>
+          'Bluetooth sedang mati. Nyalakan Bluetooth lalu pindai lagi.',
+        AvailabilityState.unauthorized =>
+          'Izin Bluetooth belum diberikan. Izinkan dulu untuk memindai printer.',
+        AvailabilityState.unsupported =>
+          'Perangkat ini tidak mendukung Bluetooth LE.',
+        AvailabilityState.resetting => 'Bluetooth sedang menyala ulang, coba lagi.',
+        _ => null,
+      };
+
+      if (problem != null) {
+        return (devices: const <PrinterDevice>[], error: problem);
+      }
 
       UniversalBle.onScanResult = (device) {
         final name = (device.name ?? '').trim();
@@ -158,11 +198,22 @@ class PrinterService {
       await Future<void>.delayed(timeout);
       await UniversalBle.stopScan();
       UniversalBle.onScanResult = null;
-    } catch (_) {
-      // Bluetooth mati / izin ditolak -> daftar kosong, bukan error keras.
+    } catch (e) {
+      UniversalBle.onScanResult = null;
+
+      return (
+        devices: found.values.toList(),
+        error: 'Pemindaian gagal: $e',
+      );
     }
 
-    return found.values.toList();
+    return (
+      devices: found.values.toList(),
+      error: found.isEmpty
+          ? 'Tidak ada printer BLE terdeteksi. Pastikan printer menyala dan '
+              'berada dekat, lalu pindai lagi.'
+          : null,
+    );
   }
 
   // ------------------------------------------------------------------ cetak

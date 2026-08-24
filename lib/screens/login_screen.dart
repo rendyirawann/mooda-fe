@@ -207,6 +207,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 18),
                         ClayButton(
                           label: 'Masuk',
+                          icon: LucideIcons.logIn,
                           loading: _loading,
                           onPressed: _loading ? null : _submit,
                         ),

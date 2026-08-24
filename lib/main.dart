@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/config.dart';
 import 'core/session.dart';
@@ -21,6 +22,14 @@ class MoodaApp extends StatelessWidget {
       title: AppConfig.appName,
       debugShowCheckedModeBanner: false,
       theme: MoodaTheme.light(),
+      // Bahasa Indonesia untuk pemilih tanggal/rentang tanggal di Laporan.
+      locale: const Locale('id'),
+      supportedLocales: const [Locale('id'), Locale('en')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       builder: (context, child) => _OrientationLock(child: child ?? const SizedBox()),
       home: const _Gate(),
     );

@@ -21,6 +21,11 @@ class _MenuScreenState extends State<MenuScreen> {
   bool _loading = true;
   String? _error;
 
+  // Paginasi daftar menu.
+  int _page = 1;
+  bool _hasMore = false;
+  bool _loadingMore = false;
+
   @override
   void initState() {
     super.initState();
@@ -31,14 +36,41 @@ class _MenuScreenState extends State<MenuScreen> {
     setState(() {
       _loading = true;
       _error = null;
+      _page = 1;
+      _hasMore = false;
     });
     try {
-      final data = await FnbService.menus();
-      if (mounted) setState(() => _menus = data);
+      final r = await FnbService.menusPage(page: 1);
+      if (mounted) {
+        setState(() {
+          _menus = r.items;
+          _hasMore = r.hasMore;
+        });
+      }
     } catch (e) {
       if (mounted) setState(() => _error = ApiClient.errorMessage(e));
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  /// Halaman menu berikutnya (dipanggil saat gulir mendekati bawah).
+  Future<void> _loadMore() async {
+    if (_loadingMore || !_hasMore) return;
+    setState(() => _loadingMore = true);
+    try {
+      final r = await FnbService.menusPage(page: _page + 1);
+      if (mounted) {
+        setState(() {
+          _menus = [..._menus, ...r.items];
+          _page += 1;
+          _hasMore = r.hasMore;
+        });
+      }
+    } catch (_) {
+      // gagal memuat tambahan tak perlu mengganggu daftar yang sudah tampil
+    } finally {
+      if (mounted) setState(() => _loadingMore = false);
     }
   }
 
@@ -71,11 +103,28 @@ class _MenuScreenState extends State<MenuScreen> {
               emptyText: 'Belum ada menu',
               onRetry: _load,
             )
-          : ListView.separated(
+          : NotificationListener<ScrollNotification>(
+              onNotification: (n) {
+                if (n.metrics.pixels >= n.metrics.maxScrollExtent - 300) _loadMore();
+
+                return false;
+              },
+              child: ListView.separated(
               padding: const EdgeInsets.fromLTRB(18, 0, 18, 20),
-              itemCount: _menus.length,
+              itemCount: _menus.length + (_loadingMore ? 1 : 0),
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (_, i) {
+                if (i >= _menus.length) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(12),
+                      child: SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2.2)),
+                    ),
+                  );
+                }
                 final m = _menus[i];
                 final available = m['available'] == true;
 
@@ -117,6 +166,7 @@ class _MenuScreenState extends State<MenuScreen> {
                   ),
                 );
               },
+              ),
             ),
     );
   }
@@ -191,7 +241,10 @@ class _MenuScreenState extends State<MenuScreen> {
                 ),
               ],
               const SizedBox(height: 18),
-              ClayButton(label: 'Tutup', onPressed: () => Navigator.of(context).pop()),
+              ClayButton(
+                  label: 'Tutup',
+                  icon: LucideIcons.x,
+                  onPressed: () => Navigator.of(context).pop()),
             ],
           ),
         ),

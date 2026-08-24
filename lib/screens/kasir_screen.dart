@@ -43,9 +43,17 @@ class _KasirScreenState extends State<KasirScreen> {
   bool _loading = true;
   String? _error;
 
-  // Daftar nota untuk tab Diproses / Selesai.
+  // Paginasi menu.
+  int _menuPage = 1;
+  bool _menuHasMore = false;
+  bool _menuLoadingMore = false;
+
+  // Daftar nota untuk tab Diproses / Selesai (juga berhalaman).
   List<Map<String, dynamic>> _orders = [];
   bool _ordersLoading = false;
+  int _orderPage = 1;
+  bool _orderHasMore = false;
+  bool _orderLoadingMore = false;
 
   // Printer & antrean offline.
   SavedPrinter? _printer;
@@ -76,14 +84,22 @@ class _KasirScreenState extends State<KasirScreen> {
     if (mounted) setState(() => _pending = n);
   }
 
+  /// Muat halaman PERTAMA menu (dipakai saat buka layar / cari / muat ulang).
   Future<void> _load() async {
     setState(() {
       _loading = true;
       _error = null;
+      _menuPage = 1;
+      _menuHasMore = false;
     });
     try {
-      final list = await KasirService.menus(query: _search.text.trim());
-      if (mounted) setState(() => _menus = list);
+      final r = await KasirService.menusPage(query: _search.text.trim(), page: 1);
+      if (mounted) {
+        setState(() {
+          _menus = r.items;
+          _menuHasMore = r.hasMore;
+        });
+      }
     } catch (e) {
       if (mounted) setState(() => _error = ApiClient.errorMessage(e));
     } finally {
@@ -91,18 +107,78 @@ class _KasirScreenState extends State<KasirScreen> {
     }
   }
 
-  Future<void> _loadOrders() async {
-    setState(() => _ordersLoading = true);
+  /// Halaman menu berikutnya (dipanggil saat gulir mendekati bawah).
+  Future<void> _loadMoreMenus() async {
+    if (_menuLoadingMore || !_menuHasMore) return;
+    setState(() => _menuLoadingMore = true);
     try {
-      final status = _tab == _Tab.proses ? 'pending,cooking,served' : 'completed';
-      final list = await FnbService.ordersByStatus(status);
-      if (mounted) setState(() => _orders = list);
+      final r = await KasirService.menusPage(
+        query: _search.text.trim(),
+        page: _menuPage + 1,
+      );
+      if (mounted) {
+        setState(() {
+          _menus = [..._menus, ...r.items];
+          _menuPage += 1;
+          _menuHasMore = r.hasMore;
+        });
+      }
+    } catch (e) {
+      if (mounted) Notify.toast(context, ApiClient.errorMessage(e), success: false);
+    } finally {
+      if (mounted) setState(() => _menuLoadingMore = false);
+    }
+  }
+
+  String get _orderStatusFilter =>
+      _tab == _Tab.proses ? 'pending,cooking,served' : 'completed';
+
+  Future<void> _loadOrders() async {
+    setState(() {
+      _ordersLoading = true;
+      _orderPage = 1;
+      _orderHasMore = false;
+    });
+    try {
+      final r = await FnbService.ordersPage(orderStatus: _orderStatusFilter, page: 1);
+      if (mounted) {
+        setState(() {
+          _orders = r.items;
+          _orderHasMore = r.hasMore;
+        });
+      }
     } catch (e) {
       if (mounted) Notify.toast(context, ApiClient.errorMessage(e), success: false);
     } finally {
       if (mounted) setState(() => _ordersLoading = false);
     }
   }
+
+  Future<void> _loadMoreOrders() async {
+    if (_orderLoadingMore || !_orderHasMore) return;
+    setState(() => _orderLoadingMore = true);
+    try {
+      final r = await FnbService.ordersPage(
+        orderStatus: _orderStatusFilter,
+        page: _orderPage + 1,
+      );
+      if (mounted) {
+        setState(() {
+          _orders = [..._orders, ...r.items];
+          _orderPage += 1;
+          _orderHasMore = r.hasMore;
+        });
+      }
+    } catch (e) {
+      if (mounted) Notify.toast(context, ApiClient.errorMessage(e), success: false);
+    } finally {
+      if (mounted) setState(() => _orderLoadingMore = false);
+    }
+  }
+
+  /// true bila gulir sudah mendekati ujung bawah (ambang 300 px).
+  bool _nearBottom(ScrollNotification n) =>
+      n.metrics.pixels >= n.metrics.maxScrollExtent - 300;
 
   void _switchTab(_Tab t) {
     setState(() => _tab = t);
@@ -492,18 +568,43 @@ class _KasirScreenState extends State<KasirScreen> {
       );
     }
 
-    return GridView.builder(
-      padding: EdgeInsets.fromLTRB(18, 0, 18, _cart.isEmpty ? 20 : 92),
-      itemCount: items.length,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: cols,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 0.95,
+    // Gulir mendekati bawah -> muat halaman menu berikutnya.
+    return NotificationListener<ScrollNotification>(
+      onNotification: (n) {
+        if (_nearBottom(n)) _loadMoreMenus();
+
+        return false;
+      },
+      child: Column(
+        children: [
+          Expanded(
+            child: GridView.builder(
+              padding: EdgeInsets.fromLTRB(18, 0, 18, _cart.isEmpty ? 20 : 92),
+              itemCount: items.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: cols,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.95,
+              ),
+              itemBuilder: (_, i) => FadeSlideIn(index: i, child: _menuCard(items[i])),
+            ),
+          ),
+          if (_menuLoadingMore) _loadingMore(),
+        ],
       ),
-      itemBuilder: (_, i) => FadeSlideIn(index: i, child: _menuCard(items[i])),
     );
   }
+
+  /// Penanda sedang memuat halaman berikutnya.
+  Widget _loadingMore() => const Padding(
+        padding: EdgeInsets.only(bottom: 12),
+        child: SizedBox(
+          height: 18,
+          width: 18,
+          child: CircularProgressIndicator(strokeWidth: 2.2),
+        ),
+      );
 
   Widget _menuCard(MenuItem m) {
     final inCart = _cart.where((l) => l.menu.id == m.id).fold<int>(0, (a, l) => a + l.qty);
@@ -725,11 +826,27 @@ class _KasirScreenState extends State<KasirScreen> {
       );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(18, 0, 18, 20),
-      itemCount: _orders.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (_, i) => FadeSlideIn(index: i, child: _orderCard(_orders[i])),
+    // Gulir mendekati bawah -> muat halaman nota berikutnya.
+    return NotificationListener<ScrollNotification>(
+      onNotification: (n) {
+        if (_nearBottom(n)) _loadMoreOrders();
+
+        return false;
+      },
+      child: Column(
+        children: [
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.fromLTRB(18, 0, 18, 20),
+              itemCount: _orders.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (_, i) =>
+                  FadeSlideIn(index: i, child: _orderCard(_orders[i])),
+            ),
+          ),
+          if (_orderLoadingMore) _loadingMore(),
+        ],
+      ),
     );
   }
 
@@ -897,16 +1014,31 @@ class _KasirScreenState extends State<KasirScreen> {
                               radius: MoodaTheme.radius,
                               blur: 12,
                               color: method == m ? MoodaTheme.primary : null,
-                              padding: const EdgeInsets.symmetric(vertical: 13),
-                              child: Center(
-                                child: Text(
-                                  m == 'cash' ? 'Tunai' : 'QRIS',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    color:
-                                        method == m ? Colors.white : MoodaTheme.ink,
+                              padding: const EdgeInsets.symmetric(vertical: 11),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    m == 'cash'
+                                        ? LucideIcons.banknote
+                                        : LucideIcons.qrCode,
+                                    size: 16,
+                                    color: method == m
+                                        ? Colors.white
+                                        : MoodaTheme.ink,
                                   ),
-                                ),
+                                  const SizedBox(width: 7),
+                                  Text(
+                                    m == 'cash' ? 'Tunai' : 'QRIS',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: method == m
+                                          ? Colors.white
+                                          : MoodaTheme.ink,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -933,6 +1065,7 @@ class _KasirScreenState extends State<KasirScreen> {
                   const SizedBox(height: 10),
                   ClayButton(
                     label: 'Batal',
+                    icon: LucideIcons.x,
                     color: MoodaTheme.bg,
                     textColor: MoodaTheme.muted,
                     height: 46,
