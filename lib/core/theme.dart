@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 
 /// Tema Mooda Mobile.
@@ -53,38 +54,31 @@ class MoodaTheme {
         fontVariations: [FontVariation('wght', weight)],
       );
 
-  // ---- Gaya: claymorphism + brutalism + minimalism ----
+  // ---- Gaya: claymorphism + minimalism ----
   //
-  // clay      : permukaan gempal, sudut sangat bulat, sedikit sorot di kiri-atas
-  // brutalism : garis tepi tegas + bayangan KERAS (tanpa blur) yang bergeser
-  // minimalism: warna terkunci, banyak ruang kosong, hiasan seminimal mungkin
+  // clay      : permukaan gempal & empuk, sudut besar, bayangan LEMBUT ganda
+  //             (gelap di kanan-bawah + sorot putih di kiri-atas)
+  // minimalism: tanpa garis tepi tegas, palet terkunci, banyak ruang kosong
 
-  /// Garis tepi tegas (brutalist).
-  static const Color border = Color(0xFF15161C);
+  /// Garis tepi sangat halus — hanya untuk memisahkan, bukan menegaskan.
+  static const Color border = Color(0xFFE8E7F2);
+  static const Color borderSoft = Color(0xFFF0EFF8);
+  static const double borderWidth = 1;
 
-  /// Garis tepi lembut untuk elemen sekunder (agar tidak ramai).
-  static const Color borderSoft = Color(0xFFE3E2EF);
+  /// Warna bayangan clay (nada ungu redup, bukan hitam).
+  static const Color clayShade = Color(0xFFCFCADF);
 
-  static const double borderWidth = 1.6;
-
-  /// Jarak geser bayangan keras.
-  static const Offset shadowOffset = Offset(4, 4);
-
-  /// Bayangan KERAS: tanpa blur, seperti blok yang menonjol.
-  static List<BoxShadow> hard({Offset offset = shadowOffset, Color? color}) => [
+  /// Bayangan clay: gelap di kanan-bawah + sorot putih di kiri-atas.
+  static List<BoxShadow> soft({double blur = 22, double y = 8, double alpha = 0.55}) => [
         BoxShadow(
-          color: color ?? border,
-          offset: offset,
-          blurRadius: 0,
-        ),
-      ];
-
-  /// Bayangan kartu lembut (dipakai untuk elemen kecil di dalam kartu).
-  static List<BoxShadow> soft({double blur = 18, double y = 6, double alpha = 0.05}) => [
-        BoxShadow(
-          color: const Color(0xFF1B1F3B).withValues(alpha: alpha),
+          color: clayShade.withValues(alpha: alpha),
           blurRadius: blur,
-          offset: Offset(0, y),
+          offset: Offset(y * 0.5, y),
+        ),
+        BoxShadow(
+          color: Colors.white.withValues(alpha: 0.9),
+          blurRadius: blur * 0.7,
+          offset: Offset(-y * 0.4, -y * 0.5),
         ),
       ];
 
@@ -94,11 +88,17 @@ class MoodaTheme {
     colors: [Color(0xFF6B3AF2), Color(0xFF4A1FD0)],
   );
 
-  /// Dipertahankan agar layar lama tetap tampil rapi (kini bergaya kartu lembut).
-  static List<BoxShadow> clay({double blur = 18, double spread = 1}) =>
-      soft(blur: blur, y: 6 * spread);
+  static List<BoxShadow> clay({double blur = 22, double spread = 1}) =>
+      soft(blur: blur, y: 8 * spread);
 
-  static List<BoxShadow> clayPressed() => soft(blur: 8, y: 2, alpha: 0.07);
+  /// Keadaan tertekan: bayangan mengempis (kesan permukaan clay ditekan).
+  static List<BoxShadow> clayPressed() => [
+        BoxShadow(
+          color: clayShade.withValues(alpha: 0.5),
+          blurRadius: 6,
+          offset: const Offset(1, 2),
+        ),
+      ];
 
   static const LinearGradient claySurface = LinearGradient(
     begin: Alignment.topLeft,
@@ -121,6 +121,16 @@ class MoodaTheme {
       colorScheme: scheme,
       scaffoldBackgroundColor: bg,
       fontFamily: fontUi,
+      // Transisi geser + GESTURE SLIDE BACK dari tepi layar (juga di Android).
+      // Menggeser dari sisi kiri akan kembali ke halaman sebelumnya; di halaman
+      // pertama, tombol/gestur kembali menutup aplikasi seperti biasa.
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.fuchsia: CupertinoPageTransitionsBuilder(),
+        },
+      ),
       dividerTheme: const DividerThemeData(color: line, thickness: 1, space: 24),
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,

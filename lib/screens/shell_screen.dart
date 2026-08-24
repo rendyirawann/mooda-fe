@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../core/theme.dart';
 import '../services/auth_service.dart';
 import '../widgets/clay.dart';
+import '../widgets/feedback.dart';
 import 'beranda_screen.dart';
 import 'kasir_screen.dart';
 import 'laporan_screen.dart';
@@ -11,7 +12,7 @@ import 'login_screen.dart';
 import 'meja_screen.dart';
 import 'menu_screen.dart';
 import 'dapur_screen.dart';
-import 'permissions_screen.dart';
+import 'pengaturan_screen.dart';
 import 'pesanan_screen.dart';
 import 'shift_screen.dart';
 import 'stok_screen.dart';
@@ -52,7 +53,7 @@ class _ShellScreenState extends State<ShellScreen> {
     MenuEntry('Bahan & Stok', LucideIcons.boxes, const Color(0xFF06B6D4), () => const StokScreen()),
     MenuEntry('HPP', LucideIcons.calculator, const Color(0xFFA855F7), () => const LaporanScreen(focusHpp: true)),
     MenuEntry('Shift', LucideIcons.clock, const Color(0xFF0EA5E9), () => const ShiftScreen()),
-    MenuEntry('Izin & Setelan', LucideIcons.settings, const Color(0xFF64748B), () => const PermissionsScreen()),
+    MenuEntry('Pengaturan', LucideIcons.settings, const Color(0xFF64748B), () => const PengaturanScreen()),
   ];
 
   Widget _page() => switch (_tab) {
@@ -70,9 +71,24 @@ class _ShellScreenState extends State<ShellScreen> {
     );
   }
 
+  /// Keluar akun: konfirmasi -> preloader -> notifikasi -> balik ke Login.
   Future<void> _logout() async {
+    final yes = await Notify.confirm(
+      context,
+      title: 'Keluar dari akun?',
+      message: 'Kamu perlu masuk kembali untuk memakai aplikasi.',
+      confirmLabel: 'Ya, keluar',
+      icon: LucideIcons.logOut,
+      color: MoodaTheme.danger,
+    );
+    if (!yes || !mounted) return;
+
+    Notify.showLoader(context, 'Keluar...');
     await AuthService.logout();
     if (!mounted) return;
+
+    Navigator.of(context).pop(); // tutup preloader
+    Notify.toast(context, 'Berhasil keluar.');
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const LoginScreen()),
     );
@@ -85,7 +101,7 @@ class _ShellScreenState extends State<ShellScreen> {
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
-          border: Border(top: BorderSide(color: MoodaTheme.border, width: 1.6)),
+          border: Border(top: BorderSide(color: MoodaTheme.border, width: 1)),
         ),
         padding: const EdgeInsets.only(top: 8, bottom: 10, left: 6, right: 6),
         child: SafeArea(
@@ -125,7 +141,7 @@ class _ShellScreenState extends State<ShellScreen> {
     );
   }
 
-  /// Tombol "Lainnya": blok ungu bergaya brutalis, membuka panel dari bawah.
+  /// Tombol "Lainnya": bantalan clay ungu, membuka panel dari bawah.
   Widget _moreItem() {
     return GestureDetector(
       onTap: _openMore,
@@ -134,13 +150,18 @@ class _ShellScreenState extends State<ShellScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 40,
+            width: 42,
             height: 26,
             decoration: BoxDecoration(
-              color: MoodaTheme.primary,
-              borderRadius: BorderRadius.circular(9),
-              border: Border.all(color: MoodaTheme.border, width: 1.4),
-              boxShadow: MoodaTheme.hard(offset: const Offset(2, 2)),
+              gradient: MoodaTheme.primaryGradient,
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: MoodaTheme.primary.withValues(alpha: 0.35),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: const Icon(LucideIcons.layoutGrid, size: 15, color: Colors.white),
           ),

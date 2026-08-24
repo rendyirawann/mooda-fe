@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'core/config.dart';
 import 'core/session.dart';
 import 'core/theme.dart';
-import 'screens/shell_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/shell_screen.dart';
 
-void main() => runApp(const MoodaApp());
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MoodaApp());
+}
 
 class MoodaApp extends StatelessWidget {
   const MoodaApp({super.key});
@@ -17,8 +21,48 @@ class MoodaApp extends StatelessWidget {
       title: AppConfig.appName,
       debugShowCheckedModeBanner: false,
       theme: MoodaTheme.light(),
+      builder: (context, child) => _OrientationLock(child: child ?? const SizedBox()),
       home: const _Gate(),
     );
+  }
+}
+
+/// Kunci rotasi sesuai ukuran perangkat:
+///  - **Ponsel** (sisi terpendek < 600dp): dikunci POTRET. Landscape di ponsel
+///    membuat grid menu kasir terlalu sempit dan sulit dipakai.
+///  - **Tablet/pad** (>= 600dp): bebas berotasi, sehingga kasir bisa memakai
+///    tata letak dua panel seperti versi web.
+class _OrientationLock extends StatefulWidget {
+  const _OrientationLock({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_OrientationLock> createState() => _OrientationLockState();
+}
+
+class _OrientationLockState extends State<_OrientationLock> {
+  bool? _tablet;
+
+  @override
+  Widget build(BuildContext context) {
+    final shortest = MediaQuery.sizeOf(context).shortestSide;
+    final isTablet = shortest >= 600;
+
+    if (_tablet != isTablet) {
+      _tablet = isTablet;
+      SystemChrome.setPreferredOrientations(
+        isTablet
+            ? const [
+                DeviceOrientation.portraitUp,
+                DeviceOrientation.landscapeLeft,
+                DeviceOrientation.landscapeRight,
+              ]
+            : const [DeviceOrientation.portraitUp],
+      );
+    }
+
+    return widget.child;
   }
 }
 
@@ -44,9 +88,7 @@ class _GateState extends State<_Gate> {
   @override
   Widget build(BuildContext context) {
     if (_authed == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return _authed! ? const ShellScreen() : const LoginScreen();
   }

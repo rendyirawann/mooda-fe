@@ -7,7 +7,7 @@ import '../core/format.dart';
 import '../core/theme.dart';
 import '../services/kasir_service.dart';
 import '../widgets/clay.dart';
-import 'payment_sheet.dart';
+import 'payment_dialog.dart';
 
 /// Kasir F&B.
 ///
@@ -97,12 +97,7 @@ class _KasirScreenState extends State<KasirScreen> {
 
   Future<void> _checkout() async {
     if (_cart.isEmpty) return;
-    final paid = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => PaymentSheet(cart: _cart),
-    );
+    final paid = await showPaymentDialog(context, _cart);
     if (paid == true && mounted) {
       setState(() => _cart.clear());
       _load();
@@ -111,7 +106,18 @@ class _KasirScreenState extends State<KasirScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final landscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final size = MediaQuery.sizeOf(context);
+    final landscape = size.width > size.height;
+
+    // Dua panel hanya dipakai bila layarnya benar-benar lega (tablet). Di ponsel
+    // rotasi sudah dikunci potret, jadi kasir selalu memakai keranjang mengapung.
+    final twoPane = landscape && size.width >= 900;
+
+    // Lebar panel nota & jumlah kolom menu mengikuti lebar layar, bukan angka mati,
+    // supaya tidak sempit di tablet kecil maupun terlalu renggang di tablet besar.
+    final panelWidth = size.width < 1100 ? 300.0 : 360.0;
+    final gridWidth = twoPane ? size.width - panelWidth - 36 : size.width;
+    final cols = (gridWidth / 190).floor().clamp(2, 6);
 
     return Scaffold(
       body: SafeArea(
@@ -120,23 +126,22 @@ class _KasirScreenState extends State<KasirScreen> {
             _topBar(),
             _searchAndChips(),
             Expanded(
-              child: landscape
+              child: twoPane
                   ? Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Expanded(flex: 3, child: _grid(cols: 3)),
-                        // Panel nota menetap (tidak mengapung) di mode landscape.
-                        SizedBox(width: 320, child: _orderPanel()),
+                        Expanded(child: _grid(cols: cols)),
+                        SizedBox(width: panelWidth, child: _orderPanel()),
                       ],
                     )
-                  : _grid(cols: 2),
+                  : _grid(cols: cols),
             ),
           ],
         ),
       ),
       // Portrait: keranjang mengapung.
-      floatingActionButton:
-          (!landscape && _cart.isNotEmpty) ? _floatingCart() : null,
+      // Keranjang mengapung dipakai kapan pun panel nota tidak ditampilkan.
+      floatingActionButton: (!twoPane && _cart.isNotEmpty) ? _floatingCart() : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }

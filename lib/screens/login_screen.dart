@@ -6,6 +6,7 @@ import '../core/api_client.dart';
 import '../core/theme.dart';
 import '../services/auth_service.dart';
 import '../widgets/clay.dart';
+import '../widgets/feedback.dart';
 import 'shell_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -37,13 +38,21 @@ class _LoginScreenState extends State<LoginScreen> {
       _loading = true;
       _error = null;
     });
+
+    // Preloader menutupi layar selama proses masuk.
+    Notify.showLoader(context, 'Sedang masuk...');
+
     try {
       await AuthService.login(_email.text.trim(), _pass.text);
       if (!mounted) return;
+      Navigator.of(context).pop(); // tutup preloader
+      Notify.toast(context, 'Login berhasil. Selamat bekerja!');
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const ShellScreen()),
       );
     } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context).pop(); // tutup preloader
       setState(() => _error = ApiClient.errorMessage(e));
     } finally {
       if (mounted) setState(() => _loading = false);

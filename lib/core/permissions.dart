@@ -1,7 +1,7 @@
 import 'package:permission_handler/permission_handler.dart';
 
 /// Jenis izin yang dipakai aplikasi.
-enum AppPermission { lokasi, kamera, media }
+enum AppPermission { lokasi, kamera, media, bluetooth }
 
 /// Pembungkus permission_handler.
 ///
@@ -21,6 +21,10 @@ class Permissions {
       case AppPermission.media:
         return await Permission.photos.isGranted ||
             await Permission.storage.isGranted;
+      case AppPermission.bluetooth:
+        // Android 12+: izin scan+connect. Versi lama tak perlu izin runtime.
+        return await Permission.bluetoothConnect.isGranted &&
+            await Permission.bluetoothScan.isGranted;
     }
   }
 
@@ -36,6 +40,10 @@ class Permissions {
         if (photos.isGranted) return true;
         // Android 12 ke bawah : READ_EXTERNAL_STORAGE -> Permission.storage
         return (await Permission.storage.request()).isGranted;
+      case AppPermission.bluetooth:
+        final scan = await Permission.bluetoothScan.request();
+        final conn = await Permission.bluetoothConnect.request();
+        return scan.isGranted && conn.isGranted;
     }
   }
 
@@ -49,6 +57,8 @@ class Permissions {
       case AppPermission.media:
         return await Permission.photos.isPermanentlyDenied &&
             await Permission.storage.isPermanentlyDenied;
+      case AppPermission.bluetooth:
+        return await Permission.bluetoothConnect.isPermanentlyDenied;
     }
   }
 

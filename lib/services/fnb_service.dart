@@ -140,9 +140,34 @@ class FnbService {
     }
   }
 
+  /// Riwayat shift (terbaru dulu), termasuk rekonsiliasi laci.
+  static Future<List<Map<String, dynamic>>> shiftHistory({int limit = 30}) async {
+    final r = await ApiClient.dio.get('/shifts', queryParameters: {'limit': limit});
+    return _list(r.data['data']);
+  }
+
   static Future<void> openShift(double startingCash) =>
       ApiClient.dio.post('/shifts/open', data: {'starting_cash': startingCash});
 
   static Future<void> closeShift(double actualCash) =>
       ApiClient.dio.post('/shifts/close', data: {'actual_cash': actualCash});
+}
+
+/// Pengaturan toko & data struk (dipakai layar Pengaturan dan pencetakan).
+class SettingsService {
+  SettingsService._();
+
+  static Future<Map<String, dynamic>> get() async {
+    final r = await ApiClient.dio.get('/settings');
+    return Map<String, dynamic>.from(r.data['data'] as Map);
+  }
+
+  static Future<void> save(Map<String, dynamic> payload) =>
+      ApiClient.dio.put('/settings', data: payload);
+
+  /// Payload struk siap cetak untuk satu pesanan.
+  static Future<Map<String, dynamic>> receipt(int orderId) async {
+    final r = await ApiClient.dio.get('/fnb/orders/$orderId/receipt');
+    return Map<String, dynamic>.from(r.data['data'] as Map);
+  }
 }

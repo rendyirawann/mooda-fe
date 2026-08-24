@@ -6,6 +6,25 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
+    <!-- ================= PRINTER THERMAL (BLUETOOTH) =================
+         Android 12+ memakai izin runtime BLUETOOTH_SCAN/CONNECT; versi lama memakai
+         BLUETOOTH/BLUETOOTH_ADMIN. `neverForLocation` dipasang agar pemindaian
+         printer tidak dianggap melacak lokasi.
+         Printer USB/OTG dijangkau lewat aplikasi RawBT (lihat PrinterService). -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30"/>
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30"/>
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+    <uses-feature android:name="android.hardware.bluetooth" android:required="false"/>
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false"/>
+    <uses-feature android:name="android.hardware.usb.host" android:required="false"/>
+
     <!-- ================= LOKASI =================
          Untuk penandaan lokasi outlet / absensi kasir. -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>

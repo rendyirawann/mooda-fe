@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
 
-/// Permukaan dasar: **clay** (gempal, sudut sangat bulat) + **brutalism**
-/// (garis tepi tegas, bayangan keras tanpa blur) + **minimalism** (isi lapang,
-/// tanpa hiasan berlebih).
+/// Permukaan dasar: **claymorphism** (empuk, sudut besar, bayangan lembut ganda)
+/// + **minimalism** (tanpa garis tepi tegas, isi lapang).
 class ClayBox extends StatelessWidget {
   const ClayBox({
     super.key,
@@ -17,10 +16,10 @@ class ClayBox extends StatelessWidget {
     this.width,
     this.height,
     this.margin,
-    this.hardBorder = true,
     this.shadow = true,
-    // Diterima agar pemanggil lama tetap jalan; tak lagi memengaruhi rupa.
-    this.blur = 0,
+    // Diterima agar pemanggil lama tetap jalan.
+    this.hardBorder = false,
+    this.blur = 22,
     this.spread = 1,
   });
 
@@ -33,43 +32,33 @@ class ClayBox extends StatelessWidget {
   final double? width;
   final double? height;
   final EdgeInsetsGeometry? margin;
-
-  /// Garis tepi & bayangan tegas (brutalist). Matikan untuk elemen sekunder.
-  final bool hardBorder;
   final bool shadow;
+  final bool hardBorder;
   final double blur;
   final double spread;
 
   @override
   Widget build(BuildContext context) {
-    final offset = pressed ? const Offset(1, 1) : MoodaTheme.shadowOffset;
-
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 90),
+      duration: const Duration(milliseconds: 110),
       width: width,
       height: height,
       margin: margin,
-      // Saat ditekan, kartu ikut bergeser ke arah bayangan -> terasa "ditekan".
-      transform: pressed
-          ? Matrix4.translationValues(MoodaTheme.shadowOffset.dx - 1, MoodaTheme.shadowOffset.dy - 1, 0)
-          : Matrix4.identity(),
       padding: padding,
       decoration: BoxDecoration(
         color: gradient == null ? (color ?? MoodaTheme.surface) : null,
         gradient: gradient,
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(
-          color: hardBorder ? MoodaTheme.border : MoodaTheme.borderSoft,
-          width: hardBorder ? MoodaTheme.borderWidth : 1,
-        ),
-        boxShadow: shadow && hardBorder ? MoodaTheme.hard(offset: offset) : null,
+        boxShadow: shadow
+            ? (pressed ? MoodaTheme.clayPressed() : MoodaTheme.soft(blur: blur, y: 8 * spread))
+            : null,
       ),
       child: child,
     );
   }
 }
 
-/// Kartu yang bisa ditekan: bayangan mengempis & kartu bergeser saat ditahan.
+/// Kartu yang bisa ditekan: mengecil sedikit & bayangan mengempis saat ditahan.
 class ClayTappable extends StatefulWidget {
   const ClayTappable({
     super.key,
@@ -79,7 +68,7 @@ class ClayTappable extends StatefulWidget {
     this.radius = MoodaTheme.radiusLg,
     this.color,
     this.gradient,
-    this.hardBorder = true,
+    this.hardBorder = false,
   });
 
   final Widget child;
@@ -109,20 +98,23 @@ class _ClayTappableState extends State<ClayTappable> {
       onTapUp: (_) => _set(false),
       onTapCancel: () => _set(false),
       onTap: widget.onTap,
-      child: ClayBox(
-        padding: widget.padding,
-        radius: widget.radius,
-        color: widget.color,
-        gradient: widget.gradient,
-        pressed: _down,
-        hardBorder: widget.hardBorder,
-        child: widget.child,
+      child: AnimatedScale(
+        scale: _down ? 0.975 : 1,
+        duration: const Duration(milliseconds: 110),
+        child: ClayBox(
+          padding: widget.padding,
+          radius: widget.radius,
+          color: widget.color,
+          gradient: widget.gradient,
+          pressed: _down,
+          child: widget.child,
+        ),
       ),
     );
   }
 }
 
-/// Tombol utama: blok ungu, garis tepi tegas, bayangan keras.
+/// Tombol utama clay.
 class ClayButton extends StatelessWidget {
   const ClayButton({
     super.key,
@@ -133,7 +125,7 @@ class ClayButton extends StatelessWidget {
     this.expand = true,
     this.color,
     this.textColor = Colors.white,
-    this.height = 56,
+    this.height = 54,
   });
 
   final String label;
@@ -153,7 +145,8 @@ class ClayButton extends StatelessWidget {
       opacity: disabled && !loading ? 0.5 : 1,
       child: ClayTappable(
         onTap: disabled ? null : onPressed,
-        color: color ?? MoodaTheme.primary,
+        gradient: (color == null) ? MoodaTheme.primaryGradient : null,
+        color: color,
         radius: MoodaTheme.radius,
         padding: EdgeInsets.zero,
         child: SizedBox(
@@ -190,7 +183,7 @@ class ClayButton extends StatelessWidget {
   }
 }
 
-/// Kotak ikon: blok warna datar + garis tepi tegas (bukan gradien lembut).
+/// Ikon clay: bantalan warna muda yang empuk, tanpa garis tegas.
 class ClayIconBadge extends StatelessWidget {
   const ClayIconBadge({
     super.key,
@@ -205,9 +198,6 @@ class ClayIconBadge extends StatelessWidget {
   final Color color;
   final double size;
   final Color? iconColor;
-
-  /// true = latar warna muda + ikon berwarna (minimalis),
-  /// false = blok warna penuh + ikon putih (lebih menonjol).
   final bool tinted;
 
   @override
@@ -216,10 +206,20 @@ class ClayIconBadge extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: tinted ? color.withValues(alpha: 0.12) : color,
+        color: tinted ? color.withValues(alpha: 0.13) : color,
         borderRadius: BorderRadius.circular(size * 0.34),
-        border: Border.all(color: MoodaTheme.border, width: 1.4),
-        boxShadow: MoodaTheme.hard(offset: const Offset(2.5, 2.5)),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: tinted ? 0.16 : 0.3),
+            blurRadius: 12,
+            offset: const Offset(2, 4),
+          ),
+          BoxShadow(
+            color: Colors.white.withValues(alpha: 0.85),
+            blurRadius: 8,
+            offset: const Offset(-2, -3),
+          ),
+        ],
       ),
       child: Icon(
         icon,
@@ -230,7 +230,7 @@ class ClayIconBadge extends StatelessWidget {
   }
 }
 
-/// Label kecil bergaya brutalis (dipakai untuk badge "POS", status, dsb).
+/// Label kecil (badge "POS", status, dsb) — datar & minimalis.
 class ClayTag extends StatelessWidget {
   const ClayTag({
     super.key,
@@ -251,9 +251,14 @@ class ClayTag extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: MoodaTheme.border, width: 1.3),
-        boxShadow: MoodaTheme.hard(offset: const Offset(2, 2)),
+        borderRadius: BorderRadius.circular(9),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.28),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Text(
         text,
