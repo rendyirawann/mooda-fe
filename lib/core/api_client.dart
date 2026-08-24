@@ -47,6 +47,19 @@ class ApiClient {
   /// Kode status HTTP dari sebuah error (null bila gagal sebelum ada respons).
   static int? statusCode(Object e) => e is DioException ? e.response?.statusCode : null;
 
+  /// true bila kegagalan terjadi SEBELUM server menjawab (jaringan mati/putus).
+  /// Dipakai kasir untuk menyimpan pesanan ke antrean offline.
+  static bool isOffline(Object e) {
+    if (e is! DioException) return false;
+
+    return e.response == null &&
+        (e.type == DioExceptionType.connectionError ||
+            e.type == DioExceptionType.connectionTimeout ||
+            e.type == DioExceptionType.sendTimeout ||
+            e.type == DioExceptionType.receiveTimeout ||
+            e.type == DioExceptionType.unknown);
+  }
+
   /// Ambil pesan error yang manusiawi dari respons API.
   static String errorMessage(Object e) {
     if (e is DioException) {

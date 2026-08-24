@@ -6,6 +6,7 @@ import '../core/format.dart';
 import '../core/theme.dart';
 import '../services/fnb_service.dart';
 import '../services/kasir_service.dart';
+import '../services/offline_queue.dart';
 import '../services/printer_service.dart';
 import '../widgets/clay.dart';
 
@@ -104,6 +105,28 @@ class _PaymentDialogState extends State<_PaymentDialog> {
         _step = _Step.pay;
       });
     } catch (e) {
+      // Jaringan mati -> simpan ke antrean offline supaya kasir tetap jalan.
+      // Pesanan dikirim ulang lewat tombol "Sinkron" di layar Kasir.
+      if (ApiClient.isOffline(e)) {
+        await OfflineQueue.add({
+          'client_txn_id': _txnId,
+          'cart': widget.cart
+              .map((l) => {
+                    'menu_id': l.menu.id,
+                    'qty': l.qty,
+                    if ((l.note ?? '').isNotEmpty) 'note': l.note,
+                  })
+              .toList(),
+          if (_customer.text.trim().isNotEmpty) 'customer_name': _customer.text.trim(),
+          if (_table != null) 'table_no': _table,
+        });
+
+        if (!mounted) return;
+        Navigator.of(context).pop(true);
+
+        return;
+      }
+
       if (mounted) setState(() => _error = ApiClient.errorMessage(e));
     } finally {
       if (mounted) setState(() => _busy = false);

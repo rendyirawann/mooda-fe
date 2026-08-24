@@ -151,6 +151,37 @@ class FnbService {
 
   static Future<void> closeShift(double actualCash) =>
       ApiClient.dio.post('/shifts/close', data: {'actual_cash': actualCash});
+
+  // ---------------- Aksi pesanan (dipakai tab kasir) ----------------
+  /// Daftar pesanan dengan filter status; boleh dipisah koma,
+  /// mis. `'pending,cooking,served'` untuk tab "Sedang diproses".
+  static Future<List<Map<String, dynamic>>> ordersByStatus(String orderStatus) async {
+    final r = await ApiClient.dio.get(
+      '/fnb/orders',
+      queryParameters: {'order_status': orderStatus},
+    );
+
+    return _list(r.data['data']);
+  }
+
+  /// Lunasi pesanan yang belum dibayar.
+  static Future<void> payOrder(int id, String method, {double? cashReceived}) =>
+      ApiClient.dio.post('/fnb/orders/$id/pay', data: {
+        'payment_method': method,
+        if (method == 'cash') 'cash_received': cashReceived,
+      });
+
+  /// Selesaikan pesanan (wajib sudah lunas).
+  /// Pesanan yang belum selesai akan memblokir penutupan shift.
+  static Future<void> completeOrder(int id) =>
+      ApiClient.dio.post('/fnb/orders/$id/complete', data: const {});
+
+  /// Tandai salah / batalkan tanda salah. Mengembalikan status barunya.
+  static Future<bool> voidOrder(int id) async {
+    final r = await ApiClient.dio.post('/fnb/orders/$id/void');
+
+    return ((r.data['data'] ?? const {}) as Map)['voided'] == true;
+  }
 }
 
 /// Pengaturan toko & data struk (dipakai layar Pengaturan dan pencetakan).
